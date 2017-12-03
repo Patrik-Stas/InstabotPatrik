@@ -1,0 +1,36 @@
+# -*- coding: utf-8 -*-
+from testsUnit.context import instabotpatrik
+import logging
+import unittest
+import pymongo
+import instabotpatrik.repository
+import instabotpatrik.model
+
+logging.getLogger().setLevel(30)
+
+
+class ItShouldSaveAndLoadNewUser(unittest.TestCase):
+    def test_run(self):
+        mongo_client = pymongo.MongoClient('localhost', 27017)
+        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client)
+        instagram_id="nn213b1jkbjk"
+        user1 = instabotpatrik.model.InstagramUser(
+            instagram_id=instagram_id,
+            url="www.url.com",
+            username="username1234xyz",
+            count_shared_media=1,
+            count_follows=2,
+            count_followed_by=3,
+            we_follow_user=False,
+            user_follows_us=True
+        )
+        repository.update_user(user1)
+        user1_loaded = repository.load_user(instagram_id)
+        self.assertEqual(user1_loaded.instagram_id, user1.instagram_id)
+        self.assertEqual(user1_loaded.url, user1.url)
+        self.assertEqual(user1_loaded.username, user1.username)
+        self.assertEqual(user1_loaded.count_shared_media, user1.count_shared_media)
+        self.assertEqual(user1_loaded.count_follows, user1.count_follows)
+        self.assertEqual(user1_loaded.count_followed_by, user1.count_followed_by)
+        self.assertEqual(user1_loaded.we_follow_user, user1.we_follow_user)
+        self.assertEqual(user1_loaded.user_follows_us, user1.user_follows_us)

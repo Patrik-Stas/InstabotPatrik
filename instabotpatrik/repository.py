@@ -57,8 +57,8 @@ class BotRepositoryMongoDb:
     def update_media(self, media):
         print("Storing: media %s", media.id)
 
-    def load_user(self, id):
-        print("Loading: User %s", id)
+    def load_user(self, instagram_id):
+        print("Loading: User %s", instagram_id)
 
     def load_followed_users(self):
         print("Loading: Followed users %s", id)

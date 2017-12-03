@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-# from unittest.mock import MagicMock
-# from unittest.mock import PropertyMock
-# from unittest.mock import Mock
 from testsUnit.context import instabotpatrik
 from unittest.mock import patch
 import unittest
@@ -18,15 +15,6 @@ logging.getLogger().setLevel(30)
 
 
 class ItShouldParseGetMediaByTag(unittest.TestCase):
-    # def my_return_values(*args, **kwargs):
-    #     url =
-    #     if args[0] == 42:
-    #         return "Called with 42"
-    #     elif args[0] == 43:
-    #         return "Called with 43"
-    #     elif kwarg['foo'] == 7:
-    #         return "Foo is seven"
-
     def test_run(self):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_get_media_by_tag.response)
@@ -141,6 +129,7 @@ class ItShouldUnfollowUser(unittest.TestCase):
         success = client.unfollow("someuser_id")
         self.assertTrue(success)
         session_mock.post.assert_called_with("https://www.instagram.com/web/friendships/someuser_id/unfollow/")
+
 
 if __name__ == '__main__':
     unittest.main()

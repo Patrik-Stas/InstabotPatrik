@@ -21,8 +21,6 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
 
     def test_run(self):
         credentials = self.load_instagram_credentials()
-        print(credentials)
-        print(str(type(credentials)))
         client = instabotpatrik.client.InstagramClient(
             user_login=credentials['user']['username'],
             user_password=credentials['user']['password'],
