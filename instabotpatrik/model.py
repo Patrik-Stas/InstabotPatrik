@@ -11,7 +11,10 @@ class InstagramUser:
                  count_follows,
                  count_followed_by,
                  we_follow_user,
-                 user_follows_us):
+                 user_follows_us,
+                 follow_actions=[],
+                 unfollow_actions=[],
+                 like_actions=[]):
         self.instagram_id = instagram_id
         self.url = url
         self.username = username
@@ -20,20 +23,20 @@ class InstagramUser:
         self.count_followed_by = count_followed_by
         self.we_follow_user = we_follow_user
         self.user_follows_us = user_follows_us
-        self.follow_actions = []
-        self.unfollow_actions = []
-        self.like_actions = []
+        self.follow_actions = follow_actions
+        self.unfollow_actions = unfollow_actions
+        self.like_actions = like_actions
 
     def add_follow(self, timestamp):
-        self.like_actions.append({"uuid": uuid.uuid4(), "timestamp": timestamp})
+        self.like_actions.append({"timestamp": timestamp})
         # insert / update existing record
 
     def add_unfollow(self, timestamp):
-        self.unfollow_actions.append({"uuid": uuid.uuid4(), "timestamp": timestamp})
+        self.unfollow_actions.append({"timestamp": timestamp})
         # insert / update existing record
 
     def add_like(self, timestamp, media_id):
-        self.actions.append({"uuid": uuid.uuid4(), "timestamp": timestamp, "media_id": media_id})
+        self.actions.append({"timestamp": timestamp, "media_id": media_id})
         # insert / update existing record
 
     def get_follow_actions(self):
