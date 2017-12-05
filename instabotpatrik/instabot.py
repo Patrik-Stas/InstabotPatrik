@@ -75,7 +75,7 @@ class InstaBot:
                 if self.can_follow():
                     self.strategy_follow.follow(media)
                 if self.can_unfollow():
-                    followed_users = self.repository_bot.load_followed_users()
+                    followed_users = self.repository_bot.find_followed_user()
                     self.strategy_unfollow.unfollow(followed_users)
 
                 time.sleep(3 + 2 * random.random())  # random addition to remove symmetry in actions

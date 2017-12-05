@@ -16,9 +16,29 @@ def build_user_from_dict(load_from_db):
             user_follows_us=user_dict['user_follows_us'],
             follow_actions=user_dict['follow_actions'],
             unfollow_actions=user_dict['unfollow_actions'],
-            like_actions=user_dict['like_actions']
+            like_actions=user_dict['like_actions'],
+            last_like_given_timestamp=user_dict['last_like_given_timestamp'],
+            last_follow_given_timestamp=user_dict['last_follow_given_timestamp'],
+            last_unfollow_given_timestamp=user_dict['last_unfollow_given_timestamp']
         )
         return user
+
+    return wrapper
+
+
+def build_media_from_dict(load_from_db):
+    def wrapper(*args, **kwargs):
+        media_dict = load_from_db(*args, **kwargs)
+        return instabotpatrik.model.InstagramMedia(
+            instagram_id=media_dict["instagram_id"],
+            shortcode=media_dict["shortcode"],
+            owner_id=media_dict["owner_id"],
+            caption=media_dict["caption"],
+            is_liked=media_dict["is_liked"],
+            like_count=media_dict["like_count"],
+            time_liked=media_dict["time_liked"],
+            owner_username=media_dict["owner_username"]
+        )
 
     return wrapper
 
@@ -73,7 +93,7 @@ class BotRepositoryMongoDb:
                     "user_follows_us": user.user_follows_us,
                     "follow_actions": user.follow_actions,
                     "unfollow_actions": user.unfollow_actions,
-                    "like_actions": user.like_actions
+                    "like_actions": user.like_actions,
                 },
                 "$currentDate": {"lastModified": True}
             },
@@ -94,9 +114,7 @@ class BotRepositoryMongoDb:
         :return: model object representing user
         :rtype: instabotpatrik.model.InstagramUser
         """
-        fo = self.users_collection.find_one(filter={"instagram_id": instagram_id})
-        print(str(fo))
-        return fo
+        return self.users_collection.find_one(filter={"instagram_id": instagram_id})
 
     def update_media(self, media):
         """
@@ -104,22 +122,39 @@ class BotRepositoryMongoDb:
         If media with such instagram_id exists, it will be updated. Otherwise it will be inserted.
         :type media: instabotpatrik.model.InstagramMedia
         """
-        print("Storing: media %s", media.instagram_id)
+        self.media_collection.update_one(
+            filter={"instagram_id": media.instagram_id},
+            update={
+                "$set": {
+                    "instagram_id": media.instagram_id,
+                    "shortcode": media.shortcode,
+                    "owner_id": media.owner_id,
+                    "caption": media.caption,
+                    "is_liked": media.is_liked,
+                    "like_count": media.like_count,
+                    "time_liked": media.time_liked,
+                    "owner_username": media.owner_username
+                },
+                "$currentDate": {"lastModified": True}
+            },
+            upsert=True
+        )
 
-    def load_followed_users(self):
+    @build_media_from_dict
+    def find_followed_user(self, min_follow_duration_sec):
         """
-        :return: list of users which the bot is following
-        :rtype: list of instabotpatrik.model.InstagramUser
+        :return: users which the bot is following
+        :rtype: instabotpatrik.model.InstagramUser
         """
-        print("Loading: Followed users %s", id)
-        return []
+        # min_follow_timestamp = time.time() - min_follow_duration_sec
+        return self.media_collection.find(filter={"we_follow_user": True})
 
-    def load_media(self, id):
+    @build_media_from_dict
+    def load_media(self, instagram_id):
         """
-        :param id: instagram_id of media to be loaded
-        :type id: string
+        :param instagram_id: instagram_id of media to be loaded
+        :type instagram_id: string
         :return: media object specified by id
-        :rtype: list of instabotpatrik.model.InstagramMedia
+        :rtype: instabotpatrik.model.InstagramMedia
         """
-        print("Loading: media %s", id)
-        return []
+        return self.media_collection.find_one(filter={"instagram_id": instagram_id})

@@ -42,7 +42,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         user1_loaded.count_followed_by = 12321
         user1_loaded.user_follows_us = False
         # TODO: store timestamps in human readable format / load and parse into python time format
-        # user1_loaded.add_follow(timestamp=time.time())
+        user1_loaded.add_follow(timestamp=time.time())
         repository.update_user(user1_loaded)
 
         user1_loaded2 = repository.load_user_by_instagram_id(instagram_id)

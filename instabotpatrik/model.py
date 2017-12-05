@@ -1,4 +1,3 @@
-
 #  TODO: Need to try creating, persisting, loading, modifying, persisting and loading
 class InstagramUser:
     def __init__(self,
@@ -12,7 +11,10 @@ class InstagramUser:
                  user_follows_us,
                  follow_actions=[],
                  unfollow_actions=[],
-                 like_actions=[]):
+                 like_actions=[],
+                 last_like_given_timestamp=None,
+                 last_follow_given_timestamp=None,
+                 last_unfollow_given_timestamp=None):
         self.instagram_id = instagram_id
         self.url = url
         self.username = username
@@ -24,6 +26,9 @@ class InstagramUser:
         self.follow_actions = follow_actions
         self.unfollow_actions = unfollow_actions
         self.like_actions = like_actions
+        self.last_like_given_timestamp = last_like_given_timestamp
+        self.last_follow_given_timestamp = last_follow_given_timestamp
+        self.last_unfollow_given_timestamp = last_unfollow_given_timestamp
 
     def add_follow(self, timestamp):
         self.like_actions.append({"timestamp": timestamp})
@@ -85,4 +90,5 @@ class InstagramMedia:
         self.owner_username = owner_username
 
     def __str__(self):
-        return "id:%s hortcode:%s owner_id:%s caption:%s" % (self.instagram_id, self.shortcode, self.owner_id, self.caption)
+        return "id:%s hortcode:%s owner_id:%s caption:%s" % (
+        self.instagram_id, self.shortcode, self.owner_id, self.caption)
