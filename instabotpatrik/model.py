@@ -75,7 +75,7 @@ class InstagramMedia:
                  owner_username=None,
                  is_liked=None,
                  time_liked=None):
-        self.id = instagram_id
+        self.instagram_id = instagram_id
         self.shortcode = shortcode
         self.owner_id = owner_id
         self.caption = caption
@@ -85,4 +85,4 @@ class InstagramMedia:
         self.owner_username = owner_username
 
     def __str__(self):
-        return "id:%s hortcode:%s owner_id:%s caption:%s" % (self.id, self.shortcode, self.owner_id, self.caption)
+        return "id:%s hortcode:%s owner_id:%s caption:%s" % (self.instagram_id, self.shortcode, self.owner_id, self.caption)

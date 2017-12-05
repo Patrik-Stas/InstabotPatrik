@@ -29,7 +29,7 @@ class ItShouldParseGetMediaByTag(unittest.TestCase):
 
         first = medias[0]
         self.assertEqual(len(medias), 17, "No media received")
-        self.assertEqual(first.id, "1661696503407488208")
+        self.assertEqual(first.instagram_id, "1661696503407488208")
         self.assertEqual(first.owner_id, "5550257784")
         self.assertEqual(first.shortcode, "BcPiCpyHKzQ")
         session_mock.get.assert_called_with("https://www.instagram.com/explore/tags/prague/?__a=1")
@@ -48,7 +48,7 @@ class ItShouldParseMediaDetail(unittest.TestCase):
 
         media = client.get_media_detail("mediaCodeABCDE")
 
-        self.assertEqual(media.id, "1640908281679491991")
+        self.assertEqual(media.instagram_id, "1640908281679491991")
         self.assertEqual(media.shortcode, "BbFrWNmgLOX")
         self.assertEqual(media.owner_id, "5804069718")
         self.assertEqual(media.caption, "프라하 안에서는 웬만해서는 #차로")

@@ -104,7 +104,7 @@ class BotRepositoryMongoDb:
         If media with such instagram_id exists, it will be updated. Otherwise it will be inserted.
         :type media: instabotpatrik.model.InstagramMedia
         """
-        print("Storing: media %s", media.id)
+        print("Storing: media %s", media.instagram_id)
 
     def load_followed_users(self):
         """

@@ -55,3 +55,4 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded2.count_followed_by, 12321)
         self.assertEqual(user1_loaded2.we_follow_user, user1.we_follow_user)
         self.assertEqual(user1_loaded2.user_follows_us, False)
+

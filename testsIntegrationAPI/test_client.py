@@ -29,7 +29,7 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
         medias = client.get_media_by_tag("prague")
         first = medias[0]
         self.assertGreater(len(medias), 0, "No media received")
-        self.assertIsNotNone(first.id)
+        self.assertIsNotNone(first.instagram_id)
         self.assertIsNotNone(first.owner_id)
         self.assertIsNotNone(first.shortcode)
         print(str(medias[0]))
