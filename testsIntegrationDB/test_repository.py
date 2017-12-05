@@ -38,11 +38,12 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded.count_followed_by, user1.count_followed_by)
         self.assertEqual(user1_loaded.we_follow_user, user1.we_follow_user)
         self.assertEqual(user1_loaded.user_follows_us, user1.user_follows_us)
+        self.assertEqual(user1_loaded.last_like_given_timestamp, None)
+        self.assertEqual(user1_loaded.last_follow_given_timestamp, None)
+        self.assertEqual(user1_loaded.last_unfollow_given_timestamp, None)
 
         user1_loaded.count_followed_by = 12321
         user1_loaded.user_follows_us = False
-        # TODO: store timestamps in human readable format / load and parse into python time format
-        user1_loaded.add_follow(timestamp=time.time())
         repository.update_user(user1_loaded)
 
         user1_loaded2 = repository.load_user_by_instagram_id(instagram_id)

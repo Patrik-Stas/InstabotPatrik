@@ -14,9 +14,6 @@ def build_user_from_dict(load_from_db):
             count_followed_by=user_dict['count_followed_by'],
             we_follow_user=user_dict['we_follow_user'],
             user_follows_us=user_dict['user_follows_us'],
-            follow_actions=user_dict['follow_actions'],
-            unfollow_actions=user_dict['unfollow_actions'],
-            like_actions=user_dict['like_actions'],
             last_like_given_timestamp=user_dict['last_like_given_timestamp'],
             last_follow_given_timestamp=user_dict['last_follow_given_timestamp'],
             last_unfollow_given_timestamp=user_dict['last_unfollow_given_timestamp']
@@ -90,10 +87,7 @@ class BotRepositoryMongoDb:
                     "count_follows": user.count_follows,
                     "count_followed_by": user.count_followed_by,
                     "we_follow_user": user.we_follow_user,
-                    "user_follows_us": user.user_follows_us,
-                    "follow_actions": user.follow_actions,
-                    "unfollow_actions": user.unfollow_actions,
-                    "like_actions": user.like_actions,
+                    "user_follows_us": user.user_follows_us
                 },
                 "$currentDate": {"lastModified": True}
             },
