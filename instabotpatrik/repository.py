@@ -87,7 +87,10 @@ class BotRepositoryMongoDb:
                     "count_follows": user.count_follows,
                     "count_followed_by": user.count_followed_by,
                     "we_follow_user": user.we_follow_user,
-                    "user_follows_us": user.user_follows_us
+                    "user_follows_us": user.user_follows_us,
+                    "last_like_given_timestamp": user.last_like_given_timestamp,
+                    "last_follow_given_timestamp": user.last_follow_given_timestamp,
+                    "last_unfollow_given_timestamp": user.last_unfollow_given_timestamp
                 },
                 "$currentDate": {"lastModified": True}
             },

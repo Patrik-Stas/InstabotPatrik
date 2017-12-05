@@ -5,6 +5,7 @@ import unittest
 import pymongo
 import instabotpatrik.repository
 import instabotpatrik.model
+import time
 
 logging.getLogger().setLevel(30)
 
@@ -42,8 +43,10 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded.last_follow_given_timestamp, None)
         self.assertEqual(user1_loaded.last_unfollow_given_timestamp, None)
 
+        like_timestamp = time.time()
         user1_loaded.count_followed_by = 12321
         user1_loaded.user_follows_us = False
+        user1_loaded.last_like_given_timestamp = like_timestamp
         repository.update_user(user1_loaded)
 
         user1_loaded2 = repository.load_user_by_instagram_id(instagram_id)
@@ -56,4 +59,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded2.count_followed_by, 12321)
         self.assertEqual(user1_loaded2.we_follow_user, user1.we_follow_user)
         self.assertEqual(user1_loaded2.user_follows_us, False)
+        self.assertEqual(user1_loaded.last_like_given_timestamp, like_timestamp)
+        self.assertEqual(user1_loaded.last_follow_given_timestamp, None)
+        self.assertEqual(user1_loaded.last_unfollow_given_timestamp, None)
 
