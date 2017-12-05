@@ -65,6 +65,10 @@ class InstagramClient:
         self.user_id = None
 
     def make_request(self, url, method_type, requests_callable):
+        """
+        :return: True if returned status code is 200-299. False otherwise
+        :rtype: dict
+        """
         logging.info("Sending [%s] %s", method_type, url)
         r = requests_callable(url)
         parsed_response = json.loads(r.text)
@@ -85,6 +89,10 @@ class InstagramClient:
         return self._login_status
 
     def login(self):
+        """
+        :return: True if user was logged in, or login was succesfull. False otherwise
+        :rtype: boolean
+        """
         if self.is_logged_in:
             logging.info("Called login(), but already logged in.")
             return True
@@ -135,6 +143,10 @@ class InstagramClient:
         return False
 
     def logout(self):
+        """
+        :return: was logout successful
+        :rtype: boolean
+        """
         logging.info('Logout.')
         try:
             logout_post = {'csrfmiddlewaretoken': self.csrftoken}
@@ -147,12 +159,17 @@ class InstagramClient:
             return False
 
     def get_media_by_tag(self, tag):
+        """
+        :param tag:
+        :return:
+        :rtype: list of instabotpatrik.model.InstagramMedia
+        """
         try:
             r_object = self.get_request(self.url_tag % tag)
             media_dict = list(r_object['tag']['media']['nodes'])
             media_objs = []
             for node in media_dict:
-                node_obj = InstagramMedia(id=node['id'],
+                node_obj = InstagramMedia(instagram_id=node['id'],
                                           shortcode=node['code'],
                                           owner_id=node['owner']['id'],
                                           like_count=node['likes']['count'],
@@ -188,6 +205,11 @@ class InstagramClient:
     # }
 
     def get_user_detail(self, username):
+        """
+        :param media_code:
+        :return:
+        :rtype: instabotpatrik.model.InstagramUser
+        """
         try:
             r_object = self.get_request(self.url_user_detail % username)
             user_info = r_object['user']
@@ -243,11 +265,16 @@ class InstagramClient:
             # logging_page_id: "profilePage_508389516"
             # }
 
-    def get_media_detail(self, media_code):
+    def get_media_detail(self, shortcode_media):
+        """
+        :param shortcode_media:
+        :return: media details
+        :rtype: instabotpatrik.model.InstagramMedia
+        """
         try:
-            r_object = self.get_request(self.url_media_detail % media_code)
+            r_object = self.get_request(self.url_media_detail % shortcode_media)
             shortcode_media = r_object['graphql']['shortcode_media']
-            return InstagramMedia(id=shortcode_media['id'],
+            return InstagramMedia(instagram_id=shortcode_media['id'],
                                   shortcode=shortcode_media['shortcode'],
                                   owner_id=shortcode_media['owner']['id'],
                                   owner_username=shortcode_media['owner']['username'],
@@ -309,6 +336,11 @@ class InstagramClient:
     # }
 
     def like(self, media_id):
+        """
+        :param media_id:
+        :return: True if giving like was successfull
+        :rtype: bool
+        """
         try:
             r_object = self.post_request(self.url_likes % media_id)
             return True if r_object['status'] == 'ok' else False
@@ -319,6 +351,11 @@ class InstagramClient:
             return False
 
     def follow(self, user_id):
+        """
+        :param user_id:
+        :return: True if giving follow was successfull
+        :rtype: bool
+        """
         try:
             r_object = self.post_request(self.url_follow % user_id)
             return True if r_object['status'] == 'ok' else False
@@ -329,6 +366,11 @@ class InstagramClient:
             return False
 
     def unfollow(self, user_id):
+        """
+        :param user_id:
+        :return: True if giving follow was successfull
+        :rtype: bool
+        """
         try:
             r_object = self.post_request(self.url_unfollow % user_id)
             return True if r_object['status'] == 'ok' else False

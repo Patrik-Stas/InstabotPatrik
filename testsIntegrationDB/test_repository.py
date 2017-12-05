@@ -5,7 +5,6 @@ import unittest
 import pymongo
 import instabotpatrik.repository
 import instabotpatrik.model
-import time
 
 logging.getLogger().setLevel(30)
 

@@ -1,5 +1,3 @@
-import uuid
-
 
 #  TODO: Need to try creating, persisting, loading, modifying, persisting and loading
 class InstagramUser:
@@ -69,7 +67,7 @@ class InstagramUser:
 
 class InstagramMedia:
     def __init__(self,
-                 id,
+                 instagram_id,
                  shortcode,
                  owner_id,
                  caption,
@@ -77,7 +75,7 @@ class InstagramMedia:
                  owner_username=None,
                  is_liked=None,
                  time_liked=None):
-        self.id = id
+        self.id = instagram_id
         self.shortcode = shortcode
         self.owner_id = owner_id
         self.caption = caption

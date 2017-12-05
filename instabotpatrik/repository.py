@@ -1,5 +1,5 @@
 import pymongo
-import instabotpatrik.model
+import instabotpatrik
 
 
 def build_user_from_dict(load_from_db):
@@ -55,7 +55,8 @@ class BotRepositoryMongoDb:
 
     def update_user(self, user):
         """
-        :param user: foo
+        :param user: Save user to database. User is identified by username. If user with such username exists, it will be updated.
+        If user with such username is not found, it will be inserted.
         :type user: instabotpatrik.model.InstagramUser
         """
         self.users_collection.update_one(
@@ -81,6 +82,10 @@ class BotRepositoryMongoDb:
 
     @build_user_from_dict
     def load_user_by_username(self, username):
+        """
+        :param username: load user from database by username
+        :rtype: instabotpatrik.model.InstagramUser
+        """
         return self.users_collection.find_one(filter={"username": username})
 
     @build_user_from_dict
@@ -94,10 +99,27 @@ class BotRepositoryMongoDb:
         return fo
 
     def update_media(self, media):
+        """
+        :param media: Save media to database. Media is identified by instagram_id.
+        If media with such instagram_id exists, it will be updated. Otherwise it will be inserted.
+        :type media: instabotpatrik.model.InstagramMedia
+        """
         print("Storing: media %s", media.id)
 
     def load_followed_users(self):
+        """
+        :return: list of users which the bot is following
+        :rtype: list of instabotpatrik.model.InstagramUser
+        """
         print("Loading: Followed users %s", id)
+        return []
 
     def load_media(self, id):
+        """
+        :param id: instagram_id of media to be loaded
+        :type id: string
+        :return: media object specified by id
+        :rtype: list of instabotpatrik.model.InstagramMedia
+        """
         print("Loading: media %s", id)
+        return []
