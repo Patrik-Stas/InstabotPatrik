@@ -65,7 +65,7 @@ class StrategyUnfollowBasic:
     def unfollow(self, followed_users):
         for user in followed_users:
             if self._should_unfollow(user):
-                if self.instabot_core.unfollow(user):
+                if self.instabot_core.register_unfollow(user):
                     self.last_unfollow_time = time.time()
 
     @staticmethod

@@ -10,6 +10,9 @@ import time
 logging.getLogger().setLevel(30)
 
 
+# TODO: load DB host/port from config file
+
+
 class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
     def test_run(self):
         mongo_client = pymongo.MongoClient('localhost', 27017)
@@ -26,10 +29,11 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
             count_follows=2,
             count_followed_by=3,
             we_follow_user=False,
-            user_follows_us=True
+            user_follows_us=True,
+            count_given_likes=12
         )
         repository.update_user(user1)
-        user1_loaded = repository.load_user_by_instagram_id(instagram_id)
+        user1_loaded = repository.find_user_by_instagram_id(instagram_id)
 
         self.assertEqual(user1_loaded.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded.url, user1.url)
@@ -37,6 +41,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded.count_shared_media, user1.count_shared_media)
         self.assertEqual(user1_loaded.count_follows, user1.count_follows)
         self.assertEqual(user1_loaded.count_followed_by, user1.count_followed_by)
+        self.assertEqual(user1_loaded.count_given_likes , user1.count_given_likes)
         self.assertEqual(user1_loaded.we_follow_user, user1.we_follow_user)
         self.assertEqual(user1_loaded.user_follows_us, user1.user_follows_us)
         self.assertEqual(user1_loaded.last_like_given_timestamp, None)
@@ -49,7 +54,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         user1_loaded.last_like_given_timestamp = like_timestamp
         repository.update_user(user1_loaded)
 
-        user1_loaded2 = repository.load_user_by_instagram_id(instagram_id)
+        user1_loaded2 = repository.find_user_by_instagram_id(instagram_id)
 
         self.assertEqual(user1_loaded2.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded2.url, user1.url)
@@ -59,9 +64,10 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded2.count_followed_by, 12321)
         self.assertEqual(user1_loaded2.we_follow_user, user1.we_follow_user)
         self.assertEqual(user1_loaded2.user_follows_us, False)
-        self.assertEqual(user1_loaded.last_like_given_timestamp, like_timestamp)
-        self.assertEqual(user1_loaded.last_follow_given_timestamp, None)
-        self.assertEqual(user1_loaded.last_unfollow_given_timestamp, None)
+        self.assertEqual(user1_loaded2.last_like_given_timestamp, like_timestamp)
+        self.assertEqual(user1_loaded2.last_follow_given_timestamp, None)
+        self.assertEqual(user1_loaded2.last_unfollow_given_timestamp, None)
+        self.assertEqual(user1_loaded2.count_given_likes, user1.count_given_likes)
 
 
 class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
@@ -83,7 +89,7 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
             time_liked=time.time()
         )
         repository.update_media(media1)
-        media1_loaded = repository.load_media(instagram_id)
+        media1_loaded = repository.find_media_by_id(instagram_id)
 
         self.assertEqual(media1_loaded.instagram_id, media1.instagram_id)
         self.assertEqual(media1_loaded.shortcode, media1.shortcode)
@@ -98,7 +104,7 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
         media1_loaded.caption = "changedcaption"
 
         repository.update_media(media1_loaded)
-        media1_loaded2 = repository.load_media(instagram_id)
+        media1_loaded2 = repository.find_media_by_id(instagram_id)
 
         self.assertEqual(media1_loaded2.instagram_id, media1.instagram_id)
         self.assertEqual(media1_loaded2.shortcode, media1.shortcode)

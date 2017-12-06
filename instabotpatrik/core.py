@@ -1,47 +1,61 @@
 import logging
-
+import instabotpatrik
 
 class InstaBotCore:
     # TODO: Make sure that all actions taken are persistens
     # TODO: Consider what should be stored in case of failure
 
     def __init__(self, repository, api_client):
+        """
+        :param repository:
+        :type repository: instabotpatrik.repository.BotRepositoryMongoDb
+        :param api_client:
+        :type api_client: instabotpatrik.client.InstagramClient
+        """
         self.repository = repository
         self.api_client = api_client
 
-    def get_media(self, tag):
+    def get_latest_media_by_tag(self, tag):
         """
-        :param tag:
+        :param tag: any string
+        :type tag: string
         :return: list of most recent media for specified tag
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
-        return self.api_client.get_media_by_tag(tag)
+        return self.api_client.get_latest_media_by_tag(tag)
 
     # TODO : handle repository exceptions (create specific exception like "InstaRepositoryException"
     def like(self, media):
         """
         :param media:
+        :type media: instabotpatrik.model.InstagramMedia
         :return: True if giving like was successfull
         :rtype: bool
         """
-        was_liked = self.api_client.like(media.id)
+        was_liked = self.api_client.like(media.instagram_id)
         if was_liked:
-            logging.info("Liked %s of owner %s", media.id, media.owner)
-            self.repository.add_like(media_id=media.id, owner_id=media.owner.id)
+            media.add_like()
+            owner_user = self.repository.find_user_by_instagram_id(media.owner_id)
+            owner_user = instabotpatrik.model.InstagramUser() if owner_user is None else owner_user
+            owner_user.register_like()
+            self.repository.update_media(media)
+            self.repository.update_user(owner_user)
         else:
-            logging.error("Failed to like: %s of owner %s", media.id, media.owner)
+            logging.error("Failed to like: %s of owner %s", media.instagram_id, media.owner_id)
         return was_liked
 
     def follow(self, user):
         """
         :param user:
+        :type user: instabotpatrik.model.InstagramUser
         :return: True if giving follow was successfull
         :rtype: bool
         """
         is_followed = self.api_client.follow(user.id)
         if is_followed:
             logging.info("Following username: %s id: %s", user.username, user.id)
-            self.repository.add_follow(user)
+            user.register_follow()
+            self.repository.update_user(user)
             return True
         else:
             logging.error("Failed to follow: %s id: %s", user.username, user.id)
@@ -50,14 +64,20 @@ class InstaBotCore:
     def unfollow(self, user):
         """
         :param user:
+        :type user: instabotpatrik.model.InstagramUser
         :return: True if giving unfollow was successfull
         :rtype: bool
         """
-        is_unfollowed = self.api_client.unfollow(user.id)
+        is_unfollowed = self.api_client.unfollow(user.instagram_id)
         if is_unfollowed:
-            logging.info("Unfollowed username: %s id: %s", user.username, user.id)
-            self.repository.add_unfollow(user)
+            logging.info("Unfollowed username: %s id: %s", user.username, user.instagram_id)
+            user.register_unfollow()
+            self.repository.update_user(user)
             return True
         else:
-            logging.error("Failed to unfollow username: %s id: %s", user.username, user.id)
+            logging.error("Failed to unfollow username: %s id: %s", user.username, user.instagram_id)
             return False
+
+    # def get_user_detail_by_id(self, instagram_id):
+    #     user = self.repository.find_user_by_id(instagram_id)
+    #     if user.username = None

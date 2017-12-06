@@ -10,6 +10,7 @@ def map_user_dict_to_obj(user_dict):
         count_shared_media=user_dict['count_shared_media'],
         count_follows=user_dict['count_follows'],
         count_followed_by=user_dict['count_followed_by'],
+        count_given_likes=user_dict['count_given_likes'],
         we_follow_user=user_dict['we_follow_user'],
         user_follows_us=user_dict['user_follows_us'],
         last_like_given_timestamp=user_dict['last_like_given_timestamp'],
@@ -92,6 +93,7 @@ class BotRepositoryMongoDb:
                     "count_shared_media": user.count_shared_media,
                     "count_follows": user.count_follows,
                     "count_followed_by": user.count_followed_by,
+                    "count_given_likes": user.count_given_likes,
                     "we_follow_user": user.we_follow_user,
                     "user_follows_us": user.user_follows_us,
                     "last_like_given_timestamp": user.last_like_given_timestamp,
@@ -104,7 +106,7 @@ class BotRepositoryMongoDb:
         )
 
     @build_user_from_dict
-    def load_user_by_username(self, username):
+    def find_user_by_username(self, username):
         """
         :param username: load user from database by username
         :rtype: instabotpatrik.model.InstagramUser
@@ -112,15 +114,15 @@ class BotRepositoryMongoDb:
         return self.users_collection.find_one(filter={"username": username})
 
     @build_user_from_dict
-    def load_user_by_instagram_id(self, instagram_id):
+    def find_user_by_instagram_id(self, user_id):
         """
         :return: model object representing user
         :rtype: instabotpatrik.model.InstagramUser
         """
-        return self.users_collection.find_one(filter={"instagram_id": instagram_id})
+        return self.users_collection.find_one(filter={"instagram_id": user_id})
 
     @build_user_from_dict
-    def find_followed_users(self, ):
+    def find_followed_users(self):
         """
         :return: users which the bot is following
         :rtype: instabotpatrik.model.InstagramUser
@@ -153,11 +155,11 @@ class BotRepositoryMongoDb:
         )
 
     @build_media_from_dict
-    def load_media(self, instagram_id):
+    def find_media_by_id(self, media_id):
         """
-        :param instagram_id: instagram_id of media to be loaded
-        :type instagram_id: string
+        :param media_id: instagram_id of media to be loaded
+        :type media_id: string
         :return: media object specified by id
         :rtype: instabotpatrik.model.InstagramMedia
         """
-        return self.media_collection.find_one(filter={"instagram_id": instagram_id})
+        return self.media_collection.find_one(filter={"instagram_id": media_id})

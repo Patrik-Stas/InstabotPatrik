@@ -1,14 +1,18 @@
+import instabotpatrik
+
+
 #  TODO: Need to try creating, persisting, loading, modifying, persisting and loading
 class InstagramUser:
     def __init__(self,
                  instagram_id,
-                 url,
-                 username,
-                 count_shared_media,
-                 count_follows,
-                 count_followed_by,
-                 we_follow_user,
-                 user_follows_us,
+                 url=None,
+                 username=None,
+                 count_shared_media=None,
+                 count_follows=None,
+                 count_followed_by=None,
+                 count_given_likes=None,
+                 we_follow_user=None,
+                 user_follows_us=None,
                  last_like_given_timestamp=None,
                  last_follow_given_timestamp=None,
                  last_unfollow_given_timestamp=None):
@@ -18,11 +22,22 @@ class InstagramUser:
         self.count_shared_media = count_shared_media
         self.count_follows = count_follows
         self.count_followed_by = count_followed_by
+        self.count_given_likes = count_given_likes
         self.we_follow_user = we_follow_user
         self.user_follows_us = user_follows_us
         self.last_like_given_timestamp = last_like_given_timestamp
         self.last_follow_given_timestamp = last_follow_given_timestamp
         self.last_unfollow_given_timestamp = last_unfollow_given_timestamp
+
+    def register_follow(self):
+        self.last_follow_given_timestamp = instabotpatrik.tools.get_time()
+
+    def register_unfollow(self):
+        self.last_unfollow_given_timestamp = instabotpatrik.tools.get_time()
+
+    def register_like(self):
+        self.last_like_given_timestamp = instabotpatrik.tools.get_time()
+        self.count_given_likes += 1
 
 
 class InstagramMedia:
@@ -44,6 +59,5 @@ class InstagramMedia:
         self.time_liked = time_liked
         self.owner_username = owner_username
 
-    def __str__(self):
-        return "id:%s hortcode:%s owner_id:%s caption:%s" % (
-        self.instagram_id, self.shortcode, self.owner_id, self.caption)
+    def add_like(self):
+        self.is_liked = True

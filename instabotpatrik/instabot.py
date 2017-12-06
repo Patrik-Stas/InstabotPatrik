@@ -66,7 +66,7 @@ class InstaBot:
         while True:
             try:
                 tag = self.strategy_tag_selection.get_tag()
-                media = self.strategy_media_scan.get_media(tag)
+                media = self.strategy_media_scan.get_latest_media_by_tag(tag)
 
                 logging.info("Media iteration for tag:%s", tag)
 
