@@ -6,20 +6,21 @@ import pymongo
 import instabotpatrik.repository
 import instabotpatrik.model
 import time
+from . import testconfig
 
 logging.getLogger().setLevel(30)
 
 
-# TODO: load DB host/port from config file
-
-
 class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
+    def tearDown(self):
+        self.mongo_client.drop_database(testconfig.database_name)
+
     def test_run(self):
-        mongo_client = pymongo.MongoClient('localhost', 27017)
-        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=mongo_client,
-                                                                    database_name="test_instabotpat",
-                                                                    users_collection_name="test_users",
-                                                                    media_collection_name="test_media")
+        self.mongo_client = pymongo.MongoClient('localhost', 27017)
+        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
+                                                                    database_name=testconfig.database_name,
+                                                                    users_collection_name=testconfig.collection_users,
+                                                                    media_collection_name=testconfig.collection_media)
         instagram_id = "nn213b1jkbjk"
         user1 = instabotpatrik.model.InstagramUser(
             instagram_id=instagram_id,
@@ -41,7 +42,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded.count_shared_media, user1.count_shared_media)
         self.assertEqual(user1_loaded.count_follows, user1.count_follows)
         self.assertEqual(user1_loaded.count_followed_by, user1.count_followed_by)
-        self.assertEqual(user1_loaded.count_given_likes , user1.count_given_likes)
+        self.assertEqual(user1_loaded.count_given_likes, user1.count_given_likes)
         self.assertEqual(user1_loaded.we_follow_user, user1.we_follow_user)
         self.assertEqual(user1_loaded.user_follows_us, user1.user_follows_us)
         self.assertEqual(user1_loaded.last_like_given_timestamp, None)
@@ -71,12 +72,15 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
 
 
 class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
+    def tearDown(self):
+        self.mongo_client.drop_database(testconfig.database_name)
+
     def test_run(self):
-        mongo_client = pymongo.MongoClient('localhost', 27017)
-        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=mongo_client,
-                                                                    database_name="test_instabotpat",
-                                                                    users_collection_name="test_users",
-                                                                    media_collection_name="test_media")
+        self.mongo_client = pymongo.MongoClient('localhost', 27017)
+        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
+                                                                    database_name=testconfig.database_name,
+                                                                    users_collection_name=testconfig.collection_users,
+                                                                    media_collection_name=testconfig.collection_media)
         instagram_id = "nn213b1jkbjk"
         media1 = instabotpatrik.model.InstagramMedia(
             instagram_id=instagram_id,
@@ -117,12 +121,15 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
 
 
 class ItShouldFindUserFollowedUsers(unittest.TestCase):
+    def tearDown(self):
+        self.mongo_client.drop_database(testconfig.database_name)
+
     def test_run(self):
-        mongo_client = pymongo.MongoClient('localhost', 27017)
-        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=mongo_client,
-                                                                    database_name="test_instabotpat",
-                                                                    users_collection_name="test_users",
-                                                                    media_collection_name="test_media")
+        self.mongo_client = pymongo.MongoClient('localhost', 27017)
+        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
+                                                                    database_name=testconfig.database_name,
+                                                                    users_collection_name=testconfig.collection_users,
+                                                                    media_collection_name=testconfig.collection_media)
         user1 = instabotpatrik.model.InstagramUser(
             instagram_id="abc",
             url="www.url.com",

@@ -61,7 +61,7 @@ class ConfigRepositoryMongoDb:
         self.config_collection = self.db[config_collection_name]
 
     def get_tags(self):
-        return self.config_collection.find_one(filter={"type": "strategy_select_random_tag"})
+        return self.config_collection.find_one(filter={"type": "strategy_select_random_tag"})['tags']
 
     def get_username(self):
         return self.config_collection.find_one(filter={"type": "credentials"})['username']
