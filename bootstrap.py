@@ -4,7 +4,7 @@
 import requests
 import pymongo
 
-from instabotpatrik.core import InstaBotCore
+from instabotpatrik.core import InstabotCore
 from instabotpatrik.repository import BotRepositoryMongoDb
 from instabotpatrik.repository import ConfigRepositoryMongoDb
 from instabotpatrik.instabot import InstaBot
@@ -23,13 +23,13 @@ repo_config = ConfigRepositoryMongoDb(mongo_client)
 client = InstagramClient(user_login=repo_config.get_username(),
                          user_password=repo_config.get_password(),
                          requests_session=requests.Session())
-core = InstaBotCore(repository=repo_bot,
+core = InstabotCore(repository=repo_bot,
                     api_client=client)
-strategy_like = StrategyLikeBasic(instabot_core=core)
-strategy_follow = StrategyFollowBasic(insta_core=core)
-strategy_media_scan = StrategyMediaScanBasic(instagram_core=core)
-strategy_tag_selection = StrategyTagSelectionBasic(repo_config)
-strategy_unfollow = StrategyUnfollowBasic(instabot_core=core)
+strategy_like = StrategyLikeBasic(core=core)
+strategy_follow = StrategyFollowBasic(core=core)
+strategy_media_scan = StrategyMediaScanBasic(core=core)
+strategy_tag_selection = StrategyTagSelectionBasic(repo_config.get_tags)
+strategy_unfollow = StrategyUnfollowBasic(core=core)
 
 InstaBot(instagram_client=client,
          repository_bot=repo_bot,

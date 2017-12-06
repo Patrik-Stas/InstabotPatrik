@@ -1,7 +1,7 @@
 import logging
 import instabotpatrik
 
-class InstaBotCore:
+class InstabotCore:
     # TODO: Make sure that all actions taken are persistens
     # TODO: Consider what should be stored in case of failure
 

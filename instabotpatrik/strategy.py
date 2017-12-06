@@ -1,11 +1,15 @@
 import time
 import random
+import instabotpatrik
 
 
 # TODO: This needs to be udpated -we are using insta core now
 class StrategyFollowBasic:
-    def __init__(self, insta_core):
-        self.insta_core = insta_core
+    def __init__(self, core):
+        """
+        :type core: instabotpatrik.core.InstabotCore
+        """
+        self.core = core
         self.max_followers = 5000
         self.min_followers = 10
         self.min_ration = 0.6
@@ -25,10 +29,13 @@ class StrategyFollowBasic:
 
 
 class StrategyLikeBasic:
-    def __init__(self, instabot_core):
+    def __init__(self, core):
+        """
+        :type core: instabotpatrik.core.InstabotCore
+        """
         self.media_max_like = 50
         self.media_min_like = 0
-        self.instabot_core = instabot_core
+        self.core = core
 
     def is_like_count_compliant(self, media_node_dict):
         like_count = media_node_dict['likes']['count']
@@ -39,33 +46,39 @@ class StrategyLikeBasic:
 
     def like(self, media_nodes_dict):
         for media_node in media_nodes_dict:
-            if self.instabot_core.do_we_like(media_node['id']):
+            if self.core.do_we_like(media_node['id']):
                 continue
             if not self.is_like_count_compliant(media_node):
                 continue
             else:
-                self.instabot_core.like(media_node)
+                self.core.like(media_node)
 
 
 class StrategyMediaScanBasic:
-    def __init__(self, instagram_core):
+    def __init__(self, core):
+        """
+        :type core: instabotpatrik.core.InstabotCore
+        """
         self.scan_frequency_sec = 10 * 60
-        self.instagram_core = instagram_core
+        self.core = core
 
     def get_media(self, tag):
-        return self.instagram_core.get_media_id_by_tag(tag)
+        return self.core.get_media_id_by_tag(tag)
 
 
 class StrategyUnfollowBasic:
-    def __init__(self, instabot_core):
+    def __init__(self, core):
+        """
+        :type core: instabotpatrik.core.InstabotCore
+        """
         self.last_unfollow_time = time.time()
         self.we_follow_min_time_sec = 60 * 60 * 50  # follow everyone for at least 50 hours
-        self.instabot_core = instabot_core
+        self.core = core
 
     def unfollow(self, followed_users):
         for user in followed_users:
             if self._should_unfollow(user):
-                if self.instabot_core.register_unfollow(user):
+                if self.core.register_unfollow(user):
                     self.last_unfollow_time = time.time()
 
     @staticmethod
@@ -93,13 +106,14 @@ class StrategyUnfollowBasic:
 
 
 class StrategyTagSelectionBasic:
-    def __init__(self, callable_get_tags):
+    def __init__(self, get_candidate_tags):
         """
-        :param callable_get_tags: callable which returns array of strings (tags)
+        :param get_candidate_tags: callable which returns list of strings (tags)
+        :type get_candidate_tags: collections.abc.Callable
         """
-        self.callable_get_tags = callable_get_tags
+        self.callable_get_tags = get_candidate_tags
 
     def get_tag(self):
-        """ ;return: return random tag from tags available"""
+        """:rtype: string"""
         tags = self.callable_get_tags()
         return random.choice(tags)

@@ -49,11 +49,20 @@ def build_media_from_dict(load_from_db):
 
 class ConfigRepositoryMongoDb:
     def __init__(self,
+                 database_name,
+                 confi_collection_name,
                  mongo_client):
+        """
+        :param mongo_client: mongo client instance
+        :type mongo_client: pymongo.MongoClient
+        """
         self.mongo_client = mongo_client
+        self.db = mongo_client[database_name]
+        self.config_collection = self.db[confi_collection_name]
 
-    def scan_tags(self):
+    def get_tags(self):
         return ["a", "b", "c"]
+        # return self.config_collection.find_one(filter={"username": username})
 
     def get_username(self):
         return "europe.wedding"
@@ -69,7 +78,7 @@ class BotRepositoryMongoDb:
                  users_collection_name,
                  media_collection_name):
         """
-        :param mongo_client: blabla
+        :param mongo_client: mongo client instance
         :type mongo_client: pymongo.MongoClient
         """
         self.mongo_client = mongo_client
