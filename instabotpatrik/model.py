@@ -1,7 +1,6 @@
 import instabotpatrik
 
 
-#  TODO: Need to try creating, persisting, loading, modifying, persisting and loading
 class InstagramUser:
     def __init__(self,
                  instagram_id,
