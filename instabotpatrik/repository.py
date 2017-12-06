@@ -2,23 +2,29 @@ import pymongo
 import instabotpatrik
 
 
+def map_user_dict_to_obj(user_dict):
+    return instabotpatrik.model.InstagramUser(
+        instagram_id=user_dict['instagram_id'],
+        url=user_dict['url'],
+        username=user_dict['username'],
+        count_shared_media=user_dict['count_shared_media'],
+        count_follows=user_dict['count_follows'],
+        count_followed_by=user_dict['count_followed_by'],
+        we_follow_user=user_dict['we_follow_user'],
+        user_follows_us=user_dict['user_follows_us'],
+        last_like_given_timestamp=user_dict['last_like_given_timestamp'],
+        last_follow_given_timestamp=user_dict['last_follow_given_timestamp'],
+        last_unfollow_given_timestamp=user_dict['last_unfollow_given_timestamp']
+    )
+
+
 def build_user_from_dict(load_from_db):
     def wrapper(*args, **kwargs):
-        user_dict = load_from_db(*args, **kwargs)
-        user = instabotpatrik.model.InstagramUser(
-            instagram_id=user_dict['instagram_id'],
-            url=user_dict['url'],
-            username=user_dict['username'],
-            count_shared_media=user_dict['count_shared_media'],
-            count_follows=user_dict['count_follows'],
-            count_followed_by=user_dict['count_followed_by'],
-            we_follow_user=user_dict['we_follow_user'],
-            user_follows_us=user_dict['user_follows_us'],
-            last_like_given_timestamp=user_dict['last_like_given_timestamp'],
-            last_follow_given_timestamp=user_dict['last_follow_given_timestamp'],
-            last_unfollow_given_timestamp=user_dict['last_unfollow_given_timestamp']
-        )
-        return user
+        db_ret = load_from_db(*args, **kwargs)
+        if isinstance(db_ret, list):
+            return [map_user_dict_to_obj(user) for user in db_ret]
+        else:
+            return map_user_dict_to_obj(db_ret)
 
     return wrapper
 
@@ -113,6 +119,15 @@ class BotRepositoryMongoDb:
         """
         return self.users_collection.find_one(filter={"instagram_id": instagram_id})
 
+    @build_user_from_dict
+    def find_followed_users(self, ):
+        """
+        :return: users which the bot is following
+        :rtype: instabotpatrik.model.InstagramUser
+        """
+        # Lets not fall into premature optimizations here yet...
+        return list(self.users_collection.find(filter={"we_follow_user": True}))
+
     def update_media(self, media):
         """
         :param media: Save media to database. Media is identified by instagram_id.
@@ -136,15 +151,6 @@ class BotRepositoryMongoDb:
             },
             upsert=True
         )
-
-    @build_media_from_dict
-    def find_followed_user(self, min_follow_duration_sec):
-        """
-        :return: users which the bot is following
-        :rtype: instabotpatrik.model.InstagramUser
-        """
-        # min_follow_timestamp = time.time() - min_follow_duration_sec
-        return self.media_collection.find(filter={"we_follow_user": True})
 
     @build_media_from_dict
     def load_media(self, instagram_id):

@@ -72,7 +72,7 @@ class ItShouldParseUserDetails(unittest.TestCase):
 
         user = client.get_user_detail("traveluser")
 
-        self.assertEqual(user.id, "5804069718")
+        self.assertEqual(user.instagram_id, "5804069718")
         self.assertEqual(user.username, "traveltravel")
         self.assertEqual(user.url, "http://www.user-url.com/")
         self.assertEqual(user.count_shared_media, 70)

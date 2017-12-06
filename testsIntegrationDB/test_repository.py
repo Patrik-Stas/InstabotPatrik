@@ -97,8 +97,6 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
         media1_loaded.is_liked = True
         media1_loaded.caption = "changedcaption"
 
-        # TODO: store timestamps in human readable format / load and parse into python time format
-        # user1_loaded.add_follow(timestamp=time.time())
         repository.update_media(media1_loaded)
         media1_loaded2 = repository.load_media(instagram_id)
 
@@ -112,7 +110,7 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
         self.assertEqual(media1_loaded2.owner_username, media1.owner_username)
 
 
-class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
+class ItShouldFindUserFollowedUsers(unittest.TestCase):
     def test_run(self):
         mongo_client = pymongo.MongoClient('localhost', 27017)
         repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=mongo_client,
@@ -152,6 +150,8 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
         repository.update_user(user1)
         repository.update_user(user2)
         repository.update_user(user3)
-        followed = repository.find_followed_user()
+        followed = repository.find_followed_users()
 
         self.assertEquals(len(followed), 2)
+        self.assertTrue("xyz" in [user.instagram_id for user in followed])
+        self.assertTrue("foouser" in [user.instagram_id for user in followed])
