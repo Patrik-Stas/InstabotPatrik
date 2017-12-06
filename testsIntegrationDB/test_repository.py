@@ -6,21 +6,41 @@ import pymongo
 import instabotpatrik.repository
 import instabotpatrik.model
 import time
-from . import testconfig
+import os
+import yaml
 
 logging.getLogger().setLevel(30)
 
 
+def get_path_to_file_in_directory_of_this_file(file_name):
+    this_directory_absolute = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    return os.path.join(this_directory_absolute, file_name)
+
+
+def load_test_configuration():
+    with open(get_path_to_file_in_directory_of_this_file("test_config.yaml"), 'r') as stream:
+        try:
+            return yaml.load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+
 class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
+
+    def setUp(self):
+        self.config = load_test_configuration()
+
     def tearDown(self):
-        self.mongo_client.drop_database(testconfig.database_name)
+        self.mongo_client.drop_database(self.config['database']['name'])
 
     def test_run(self):
         self.mongo_client = pymongo.MongoClient('localhost', 27017)
         repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
-                                                                    database_name=testconfig.database_name,
-                                                                    users_collection_name=testconfig.collection_users,
-                                                                    media_collection_name=testconfig.collection_media)
+                                                                    database_name=self.config['database']['name'],
+                                                                    users_collection_name=self.config['database'][
+                                                                        'collection_users'],
+                                                                    media_collection_name=self.config['database'][
+                                                                        'collection_media'])
         instagram_id = "nn213b1jkbjk"
         user1 = instabotpatrik.model.InstagramUser(
             instagram_id=instagram_id,
@@ -72,15 +92,20 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
 
 
 class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
+    def setUp(self):
+        self.config = load_test_configuration()
+
     def tearDown(self):
-        self.mongo_client.drop_database(testconfig.database_name)
+        self.mongo_client.drop_database(self.config['database']['name'])
 
     def test_run(self):
         self.mongo_client = pymongo.MongoClient('localhost', 27017)
         repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
-                                                                    database_name=testconfig.database_name,
-                                                                    users_collection_name=testconfig.collection_users,
-                                                                    media_collection_name=testconfig.collection_media)
+                                                                    database_name=self.config['database']['name'],
+                                                                    users_collection_name=self.config['database'][
+                                                                        'collection_users'],
+                                                                    media_collection_name=self.config['database'][
+                                                                        'collection_media'])
         instagram_id = "nn213b1jkbjk"
         media1 = instabotpatrik.model.InstagramMedia(
             instagram_id=instagram_id,
@@ -121,15 +146,20 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
 
 
 class ItShouldFindUserFollowedUsers(unittest.TestCase):
+    def setUp(self):
+        self.config = load_test_configuration()
+
     def tearDown(self):
-        self.mongo_client.drop_database(testconfig.database_name)
+        self.mongo_client.drop_database(self.config['database']['name'])
 
     def test_run(self):
         self.mongo_client = pymongo.MongoClient('localhost', 27017)
         repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
-                                                                    database_name=testconfig.database_name,
-                                                                    users_collection_name=testconfig.collection_users,
-                                                                    media_collection_name=testconfig.collection_media)
+                                                                    database_name=self.config['database']['name'],
+                                                                    users_collection_name=self.config['database'][
+                                                                        'collection_users'],
+                                                                    media_collection_name=self.config['database'][
+                                                                        'collection_media'])
         user1 = instabotpatrik.model.InstagramUser(
             instagram_id="abc",
             url="www.url.com",
