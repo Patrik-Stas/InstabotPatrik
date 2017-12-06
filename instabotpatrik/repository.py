@@ -50,7 +50,7 @@ def build_media_from_dict(load_from_db):
 class ConfigRepositoryMongoDb:
     def __init__(self,
                  database_name,
-                 confi_collection_name,
+                 config_collection_name,
                  mongo_client):
         """
         :param mongo_client: mongo client instance
@@ -58,17 +58,16 @@ class ConfigRepositoryMongoDb:
         """
         self.mongo_client = mongo_client
         self.db = mongo_client[database_name]
-        self.config_collection = self.db[confi_collection_name]
+        self.config_collection = self.db[config_collection_name]
 
     def get_tags(self):
-        return ["a", "b", "c"]
-        # return self.config_collection.find_one(filter={"username": username})
+        return self.config_collection.find_one(filter={"type": "strategy_select_random_tag"})
 
     def get_username(self):
-        return "europe.wedding"
+        return self.config_collection.find_one(filter={"type": "credentials"})['username']
 
     def get_password(self):
-        return "_YokyPatrikInstagram54"
+        return self.config_collection.find_one(filter={"type": "credentials"})['password']
 
 
 class BotRepositoryMongoDb:
