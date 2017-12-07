@@ -195,6 +195,6 @@ class ItShouldFindUserFollowedUsers(unittest.TestCase):
         repository.update_user(user3)
         followed = repository.find_followed_users()
 
-        self.assertEquals(len(followed), 2)
+        self.assertEqual(len(followed), 2)
         self.assertTrue("xyz" in [user.instagram_id for user in followed])
         self.assertTrue("foouser" in [user.instagram_id for user in followed])
