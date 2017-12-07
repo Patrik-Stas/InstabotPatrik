@@ -133,7 +133,7 @@ class BotRepositoryMongoDb:
     def find_followed_users(self):
         """
         :return: users which the bot is following
-        :rtype: instabotpatrik.model.InstagramUser
+        :rtype: list of instabotpatrik.model.InstagramUser
         """
         # Lets not fall into premature optimizations here yet...
         return list(self.users_collection.find(filter={"we_follow_user": True}))

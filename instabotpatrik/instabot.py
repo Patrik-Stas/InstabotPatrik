@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import datetime
-import random
 import time
 import logging
-
+import instabotpatrik
 
 class InstaBot:
-    user_agent = ("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36")
-    accept_language = 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4'
-    login_status = False
 
     def __init__(self,
                  instagram_client,
@@ -78,6 +73,7 @@ class InstaBot:
                     followed_users = self.repository_bot.find_followed_user()
                     self.strategy_unfollow.unfollow(followed_users)
 
-                time.sleep(3 + 2 * random.random())  # random addition to remove symmetry in actions
+                instabotpatrik.tools.go_sleep(duration_sec=3, plusminus=2)
             except Exception as e:
                 logging.error(e, exc_info=True)
+                instabotpatrik.tools.go_sleep(duration_sec=100, plusminus=15)

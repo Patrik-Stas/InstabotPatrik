@@ -1,10 +1,8 @@
 import logging
 import instabotpatrik
 
-class InstabotCore:
-    # TODO: Make sure that all actions taken are persistens
-    # TODO: Consider what should be stored in case of failure
 
+class InstabotCore:
     def __init__(self, repository, api_client):
         """
         :param repository:
@@ -15,16 +13,18 @@ class InstabotCore:
         self.repository = repository
         self.api_client = api_client
 
-    def get_latest_media_by_tag(self, tag):
+    def get_latest_media_by_tag(self, tag, include_own=False):
         """
         :param tag: any string
         :type tag: string
+        :param include_own: specifies whether media posted by us should be included in returned list
         :return: list of most recent media for specified tag
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
-        return self.api_client.get_latest_media_by_tag(tag)
+        recent_media = self.api_client.get_latest_media_by_tag(tag)
+        return recent_media if include_own \
+            else [media for media in recent_media if media.owner_id != self.api_client.our_instagram_id]
 
-    # TODO : handle repository exceptions (create specific exception like "InstaRepositoryException"
     def like(self, media):
         """
         :param media:
@@ -36,7 +36,7 @@ class InstabotCore:
         if was_liked:
             media.add_like()
             owner_user = self.repository.find_user_by_instagram_id(media.owner_id)
-            owner_user = instabotpatrik.model.InstagramUser() if owner_user is None else owner_user
+            owner_user = instabotpatrik.model.InstagramUser(media.owner_id) if owner_user is None else owner_user
             owner_user.register_like()
             self.repository.update_media(media)
             self.repository.update_user(owner_user)
@@ -51,14 +51,14 @@ class InstabotCore:
         :return: True if giving follow was successfull
         :rtype: bool
         """
-        is_followed = self.api_client.follow(user.id)
+        is_followed = self.api_client.follow(user.instagram_id)
         if is_followed:
-            logging.info("Following username: %s id: %s", user.username, user.id)
+            logging.info("Following username: %s id: %s", user.username, user.instagram_id)
             user.register_follow()
             self.repository.update_user(user)
             return True
         else:
-            logging.error("Failed to follow: %s id: %s", user.username, user.id)
+            logging.error("Failed to follow: %s id: %s", user.username, user.instagram_id)
             return False
 
     def unfollow(self, user):

@@ -62,7 +62,7 @@ class InstagramClient:
             'password': self.user_password
         }
         self.csrftoken = None
-        self.user_id = None
+        self.our_instagram_id = None
 
     def make_request(self, url, method_type, requests_callable):
         """
@@ -131,7 +131,7 @@ class InstagramClient:
             r = self.s.get('https://www.instagram.com/')
             finder = r.text.find(self.user_login)
             if finder != -1:
-                self.user_id = self.get_user_detail(self.user_login)
+                self.our_instagram_id = self.get_user_detail(self.user_login)
                 self._login_status = True
                 logging.info('%s login success!', self.user_login)
                 return True
@@ -158,10 +158,10 @@ class InstagramClient:
             logging.error(e, exc_info=True)
             return False
 
-    def get_media_by_tag(self, tag):
+    def get_latest_media_by_tag(self, tag):
         """
         :param tag:
-        :return:
+        :return: list of most recently posted media containing specified tag
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
         try:
@@ -175,6 +175,7 @@ class InstagramClient:
                                           like_count=node['likes']['count'],
                                           caption=node['caption'])
                 media_objs.append(node_obj)
+
             return media_objs
         except Exception as e:
             logging.error(e, exc_info=True)

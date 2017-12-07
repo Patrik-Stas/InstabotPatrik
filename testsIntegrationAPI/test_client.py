@@ -26,7 +26,7 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
             user_password=credentials['user']['password'],
             requests_session=requests.Session()
         )
-        medias = client.get_media_by_tag("prague")
+        medias = client.get_latest_media_by_tag("prague")
         first = medias[0]
         self.assertGreater(len(medias), 0, "No media received")
         self.assertIsNotNone(first.instagram_id)

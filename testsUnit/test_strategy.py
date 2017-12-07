@@ -27,19 +27,5 @@ class TestItShouldSeemSelectRandomly(unittest.TestCase):
         self.assertTrue("e" in tag_sequence)
 
 
-#
-# def suite():
-#     suite = unittest.TestSuite()
-#     suite1 = TestTagSelectionRandom()
-#     suite2 = TestTagSelectionRandom2()
-#     suite.addTest(suite1, suite2)
-#     return suite
-#
-#
-# if __name__ == '__main__':
-#     runner = unittest.TextTestRunner()
-#     test_suite = suite()
-#     runner.run(test_suite)
-
 if __name__ == '__main__':
     unittest.main()
