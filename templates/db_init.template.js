@@ -13,7 +13,7 @@ db.$collection_media_name.createIndex({"instagram_id": 1}, {unique: true});
 
 // tag selection strategy
 db.$collection_config_name.insert({
-    "type":"strategy_select_random_tag"
+    "type":"strategy_select_random_tag",
     "tags":$tag_list
 })
 

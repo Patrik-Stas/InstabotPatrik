@@ -72,4 +72,7 @@ ENV/
 *.iml
 
 # bot specific ignores
-*secret.yaml
+*.secret.yaml
+*templates/.vars.json
+db_prod_init.json
+db_test_init.json

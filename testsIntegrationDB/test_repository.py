@@ -12,6 +12,9 @@ import yaml
 logging.getLogger().setLevel(30)
 
 
+# TODO: The test_config yaml stuff should go away, these values should be somehow injected into the test runner
+# TODO: Also parametetrize test logging level
+
 def get_path_to_file_in_directory_of_this_file(file_name):
     this_directory_absolute = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     return os.path.join(this_directory_absolute, file_name)
