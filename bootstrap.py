@@ -31,7 +31,8 @@ strategy_media_scan = StrategyMediaScanBasic(core=core)
 strategy_tag_selection = StrategyTagSelectionBasic(repo_config.get_tags)
 strategy_unfollow = StrategyUnfollowBasic(core=core)
 
-InstaBot(instagram_client=client,
+InstaBot(core=core,
+         instagram_client=client,
          repository_bot=repo_bot,
          repository_config=repo_config,
          strategy_tag_selection=strategy_tag_selection,

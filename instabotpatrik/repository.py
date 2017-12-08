@@ -19,13 +19,26 @@ def map_user_dict_to_obj(user_dict):
     )
 
 
+def map_media_dict_to_obj(media_dict):
+    return instabotpatrik.model.InstagramMedia(
+        instagram_id=media_dict["instagram_id"],
+        shortcode=media_dict["shortcode"],
+        owner_id=media_dict["owner_id"],
+        caption=media_dict["caption"],
+        is_liked=media_dict["is_liked"],
+        like_count=media_dict["like_count"],
+        time_liked=media_dict["time_liked"],
+        owner_username=media_dict["owner_username"]
+    )
+
+
 def build_user_from_dict(load_from_db):
     def wrapper(*args, **kwargs):
         db_ret = load_from_db(*args, **kwargs)
         if isinstance(db_ret, list):
             return [map_user_dict_to_obj(user) for user in db_ret]
         else:
-            return map_user_dict_to_obj(db_ret)
+            return None if db_ret is None else map_user_dict_to_obj(db_ret)
 
     return wrapper
 
@@ -33,16 +46,10 @@ def build_user_from_dict(load_from_db):
 def build_media_from_dict(load_from_db):
     def wrapper(*args, **kwargs):
         media_dict = load_from_db(*args, **kwargs)
-        return instabotpatrik.model.InstagramMedia(
-            instagram_id=media_dict["instagram_id"],
-            shortcode=media_dict["shortcode"],
-            owner_id=media_dict["owner_id"],
-            caption=media_dict["caption"],
-            is_liked=media_dict["is_liked"],
-            like_count=media_dict["like_count"],
-            time_liked=media_dict["time_liked"],
-            owner_username=media_dict["owner_username"]
-        )
+        if isinstance(media_dict, list):
+            return [map_media_dict_to_obj(media) for media in media_dict]
+        else:
+            return None if media_dict is None else map_media_dict_to_obj(media_dict)
 
     return wrapper
 
@@ -122,7 +129,7 @@ class BotRepositoryMongoDb:
         return self.users_collection.find_one(filter={"username": username})
 
     @build_user_from_dict
-    def find_user_by_instagram_id(self, user_id):
+    def find_user(self, user_id):
         """
         :return: model object representing user
         :rtype: instabotpatrik.model.InstagramUser

@@ -35,7 +35,7 @@ class InstabotCore:
         was_liked = self.api_client.like(media.instagram_id)
         if was_liked:
             media.add_like()
-            owner_user = self.repository.find_user_by_instagram_id(media.owner_id)
+            owner_user = self.repository.find_user(media.owner_id)
             owner_user = instabotpatrik.model.InstagramUser(media.owner_id) if owner_user is None else owner_user
             owner_user.register_like()
             self.repository.update_media(media)
@@ -78,6 +78,17 @@ class InstabotCore:
             logging.error("Failed to unfollow username: %s id: %s", user.username, user.instagram_id)
             return False
 
-    # def get_user_detail_by_id(self, instagram_id):
-    #     user = self.repository.find_user_by_id(instagram_id)
-    #     if user.username = None
+    # TODO: Unit test
+    def get_media_owner(self, media):
+        """
+        :param media:
+        :type media: instabotpatrik.model.InstagramMedia
+        :return: owner
+        :rtype: instabotpatrik.model.InstagramUser
+        """
+        user = self.repository.find_user(instagram_id=media.owner_id)
+        if user is None or user.username is None:
+            user_api = self.api_client.get_user_detail()
+            user.update_basic_data(user_api)
+            self.repository.update_user(user)
+        return user

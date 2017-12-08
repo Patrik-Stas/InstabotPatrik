@@ -57,7 +57,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
             count_given_likes=12
         )
         repository.update_user(user1)
-        user1_loaded = repository.find_user_by_instagram_id(instagram_id)
+        user1_loaded = repository.find_user(instagram_id)
 
         self.assertEqual(user1_loaded.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded.url, user1.url)
@@ -78,7 +78,7 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         user1_loaded.last_like_given_timestamp = like_timestamp
         repository.update_user(user1_loaded)
 
-        user1_loaded2 = repository.find_user_by_instagram_id(instagram_id)
+        user1_loaded2 = repository.find_user(instagram_id)
 
         self.assertEqual(user1_loaded2.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded2.url, user1.url)
