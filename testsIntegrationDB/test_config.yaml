@@ -1,5 +1,0 @@
-database:
-  name: "instabot_test"
-  collection_users : "users_test"
-  collection_media : "media_test"
-  collection_config : "config_test"

@@ -37,3 +37,5 @@ class ItShoulIncludeOwnMedia(unittest.TestCase):
         self.assertEqual(2, len(foobar_medias))
         self.assertTrue("owner_id1" in [media.owner_id for media in foobar_medias])
         self.assertTrue("my_id" in [media.owner_id for media in foobar_medias])
+
+
