@@ -5,7 +5,6 @@ import json
 from string import Template
 
 db_init_prod_path = "db_prod_init.js"
-db_init_test_path = "db_test_init.js"
 db_init_template_path = "templates/db_init.template.js"
 db_template_vars_path = "templates/db_init.vars.json"
 
@@ -33,11 +32,6 @@ def generate_db_init_prod():
     interpolate_template(db_init_template_path, var_dict, db_init_prod_path)
 
 
-def generate_db_init_test():
-    var_dict = _get_env_config('test')
-    interpolate_template(db_init_template_path, var_dict, db_init_test_path)
-
-
 def _get_env_config(env_name):
     with open(db_template_vars_path, 'r') as var_file:
         json_data = json.loads(var_file.read())
@@ -45,31 +39,18 @@ def _get_env_config(env_name):
 
 
 @task
-def generate_db_init(ctx, env):
-    if env == 'prod':
-        generate_db_init_prod()
-    elif env == 'test':
-        generate_db_init_test()
-    elif env == 'all':
-        generate_db_init_prod()
-        generate_db_init_test()
+def generate_db_init(ctx):
+    generate_db_init_prod()
 
 
 @task
-def init_db(ctx, env):
-    if env == 'prod':
-        ctx.run("mongo -host '%s' -port %d '%s'" % (mongo_host, mongo_port, db_init_prod_path))
-    elif env == 'test':
-        ctx.run("mongo -host '%s' -port %d '%s'" % (mongo_host, mongo_port, db_init_test_path))
-    elif env == 'all':
-        ctx.run("mongo -host '%s' -port %d '%s'" % (mongo_host, mongo_port, db_init_prod_path))
-        ctx.run("mongo -host '%s' -port %d '%s'" % (mongo_host, mongo_port, db_init_test_path))
+def init_db(ctx):
+    ctx.run("mongo -host '%s' -port %d '%s'" % (mongo_host, mongo_port, db_init_prod_path))
 
 
 @task
 def clean(ctx):
     ctx.run("rm '%s'" % db_init_prod_path)
-    ctx.run("rm '%s'" % db_init_test_path)
 
 
 @task

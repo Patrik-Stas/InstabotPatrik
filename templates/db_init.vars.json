@@ -1,18 +1,4 @@
 {
-  "test" : {
-    "db_name": "test_instabot",
-    "collection_media_name": "test_media",
-    "collection_users_name": "test_users",
-    "collection_config_name": "test_config",
-    "tag_list": [
-      "praha",
-      "tagsareawesome",
-      "test_environment_tag",
-      "#힌국말",
-      "ывплывло",
-      "dobrý děňôčik ľoŕa"
-    ]
-  },
   "prod" : {
     "db_name": "instabot",
     "collection_media_name": "media",
