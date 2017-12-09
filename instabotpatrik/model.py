@@ -1,47 +1,86 @@
 import instabotpatrik
+import logging
+from copy import deepcopy
 
 
-class InstagramUser:
+class InstagramUserBotHistory:
+
     def __init__(self,
-                 instagram_id,
-                 url=None,
-                 username=None,
-                 count_shared_media=None,
-                 count_follows=None,
-                 count_followed_by=None,
-                 count_given_likes=None,
-                 we_follow_user=None,
-                 user_follows_us=None,
-                 last_like_given_timestamp=None,
-                 last_follow_given_timestamp=None,
-                 last_unfollow_given_timestamp=None):
-        self.instagram_id = instagram_id
+                 count_likes=None,
+                 last_like_timestamp=None,
+                 last_follow_timestamp=None,
+                 last_unfollow_timestamp=None):
+        self.count_likes = count_likes
+        self.last_like_timestamp = last_like_timestamp
+        self.last_follow_timestamp = last_follow_timestamp
+        self.last_unfollow_timestamp = last_unfollow_timestamp
+
+
+class InstagramUserDetail:
+
+    def __init__(self,
+                 url,
+                 count_shared_media,
+                 count_follows,
+                 count_followed_by,
+                 we_follow_user,
+                 user_follows_us):
         self.url = url
-        self.username = username
         self.count_shared_media = count_shared_media
         self.count_follows = count_follows
         self.count_followed_by = count_followed_by
-        self.count_given_likes = count_given_likes
         self.we_follow_user = we_follow_user
         self.user_follows_us = user_follows_us
-        self.last_like_given_timestamp = last_like_given_timestamp
-        self.last_follow_given_timestamp = last_follow_given_timestamp
-        self.last_unfollow_given_timestamp = last_unfollow_given_timestamp
+
+
+class InstagramUser:
+
+    def __init__(self,
+                 instagram_id,
+                 bot_history=None,
+                 username=None,
+                 user_detail=None):
+        """
+
+        :type user_detail: InstagramUserDetail
+        :type bot_history: InstagramUserBotHistory
+        """
+        self.instagram_id = instagram_id
+        self.username = username
+        self.detail = user_detail
+        self.bot_data = bot_history if bot_history is not None else InstagramUserBotHistory()
+
+    def is_fully_known(self):  # Information available if user profile is viewed
+        return self.instagram_id is not None \
+               and self.username is not None \
+               and self.detail is not None
+
+    def update_data(self, source_user):
+        """
+        :param source_user: source of new information
+        :type source_user: InstagramUser
+        """
+        if source_user.is_fully_known():
+            if self.instagram_id != source_user.instagram_id:
+                raise Exception("updating information on user(%s) from user with different ID(%s) doesnt. make sense.",
+                                self.instagram_id, source_user.instagram_id)
+        self.username = source_user.username
+        self.detail = deepcopy(source_user.detail)
 
     def register_follow(self):
-        self.last_follow_given_timestamp = instabotpatrik.tools.get_time()
-        self.we_follow_user = True
+        self.bot_data.last_follow_timestamp = instabotpatrik.tools.get_time()
+        self.detail.we_follow_user = True
 
     def register_unfollow(self):
-        self.last_unfollow_given_timestamp = instabotpatrik.tools.get_time()
-        self.we_follow_user = False
+        self.bot_data.last_unfollow_timestamp = instabotpatrik.tools.get_time()
+        self.detail.we_follow_user = False
 
     def register_like(self):
-        self.last_like_given_timestamp = instabotpatrik.tools.get_time()
-        if self.count_given_likes is None:
-            self.count_given_likes = 1
+        self.bot_data.last_like_timestamp = instabotpatrik.tools.get_time()
+        if self.bot_data.count_likes is None:
+            self.bot_data.count_likes = 1
         else:
-            self.count_given_likes += 1
+            self.bot_data.count_likes += 1
 
 
 class InstagramMedia:

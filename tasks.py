@@ -14,18 +14,28 @@ mongo_port = 27017
 
 @task
 def test_api(ctx):
-    ctx.run('python -m unittest discover -v -s ./testsIntegrationAPI// -p "test_*.py"')
+    ctx.run('python -m unittest discover -v -s ./testsIntegrationAPI/ -p "test_*.py"')
 
 
 @task
 def test_db(ctx):
-    ctx.run('python -m unittest discover -v -s ./testsIntegrationDB// -p "test_*.py"')
+    ctx.run('python -m unittest discover -v -s ./testsIntegrationDB/ -p "test_*.py"')
 
 
 @task
 def test_unit(ctx):
-    ctx.run('python -m unittest discover -v -s ./testsUnit// -p "test_*.py"')
+    ctx.run('python -m unittest discover -v -s ./testsUnit/ -p "test_*.py"')
 
+@task
+def test_local(ctx):
+    test_unit(ctx)
+    test_db(ctx)
+
+
+@task
+def test_all(ctx):
+    test_local(ctx)
+    test_api(ctx)
 
 def generate_db_init_prod():
     var_dict = _get_env_config('prod')

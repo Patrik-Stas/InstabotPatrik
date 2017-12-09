@@ -3,19 +3,25 @@ import instabotpatrik
 
 
 def map_user_dict_to_obj(user_dict):
+    bot_history = None if user_dict['bot'] is None else instabotpatrik.model.InstagramUserBotHistory(
+        count_likes=user_dict['bot']['count_likes'],
+        last_like_timestamp=user_dict['bot']['last_like_timestamp'],
+        last_follow_timestamp=user_dict['bot']['last_follow_timestamp'],
+        last_unfollow_timestamp=user_dict['bot']['last_unfollow_timestamp']
+    )
+    user_detail = None if user_dict['detail'] is None else instabotpatrik.model.InstagramUserDetail(
+        url=user_dict['detail']['url'],
+        count_shared_media=user_dict['detail']['count_shared_media'],
+        count_follows=user_dict['detail']['count_follows'],
+        count_followed_by=user_dict['detail']['count_followed_by'],
+        we_follow_user=user_dict['detail']['we_follow_user'],
+        user_follows_us=user_dict['detail']['user_follows_us'],
+    )
     return instabotpatrik.model.InstagramUser(
         instagram_id=user_dict['instagram_id'],
-        url=user_dict['url'],
         username=user_dict['username'],
-        count_shared_media=user_dict['count_shared_media'],
-        count_follows=user_dict['count_follows'],
-        count_followed_by=user_dict['count_followed_by'],
-        count_given_likes=user_dict['count_given_likes'],
-        we_follow_user=user_dict['we_follow_user'],
-        user_follows_us=user_dict['user_follows_us'],
-        last_like_given_timestamp=user_dict['last_like_given_timestamp'],
-        last_follow_given_timestamp=user_dict['last_follow_given_timestamp'],
-        last_unfollow_given_timestamp=user_dict['last_unfollow_given_timestamp']
+        user_detail=user_detail,
+        bot_history=bot_history
     )
 
 
@@ -98,22 +104,29 @@ class BotRepositoryMongoDb:
         If user with such username is not found, it will be inserted.
         :type user: instabotpatrik.model.InstagramUser
         """
+        detail_update = None if user.detail is None else {
+            "url": user.detail.url,
+            "count_shared_media": user.detail.count_shared_media,
+            "count_follows": user.detail.count_follows,
+            "count_followed_by": user.detail.count_followed_by,
+            "we_follow_user": user.detail.we_follow_user,
+            "user_follows_us": user.detail.user_follows_us,
+        }
+        bot_update = None if user.bot_data is None else {
+            "count_likes": user.bot_data.count_likes,
+            "last_like_timestamp": user.bot_data.last_like_timestamp,
+            "last_follow_timestamp": user.bot_data.last_follow_timestamp,
+            "last_unfollow_timestamp": user.bot_data.last_unfollow_timestamp
+        }
+
         self.users_collection.update_one(
-            filter={"username": user.username},
+            filter={"instagram_id": user.instagram_id},
             update={
                 "$set": {
                     "instagram_id": user.instagram_id,
-                    "url": user.url,
                     "username": user.username,
-                    "count_shared_media": user.count_shared_media,
-                    "count_follows": user.count_follows,
-                    "count_followed_by": user.count_followed_by,
-                    "count_given_likes": user.count_given_likes,
-                    "we_follow_user": user.we_follow_user,
-                    "user_follows_us": user.user_follows_us,
-                    "last_like_given_timestamp": user.last_like_given_timestamp,
-                    "last_follow_given_timestamp": user.last_follow_given_timestamp,
-                    "last_unfollow_given_timestamp": user.last_unfollow_given_timestamp
+                    "detail": detail_update,
+                    "bot": bot_update
                 },
                 "$currentDate": {"lastModified": True}
             },
@@ -129,12 +142,12 @@ class BotRepositoryMongoDb:
         return self.users_collection.find_one(filter={"username": username})
 
     @build_user_from_dict
-    def find_user(self, user_id):
+    def find_user(self, instagram_id):
         """
         :return: model object representing user
         :rtype: instabotpatrik.model.InstagramUser
         """
-        return self.users_collection.find_one(filter={"instagram_id": user_id})
+        return self.users_collection.find_one(filter={"instagram_id": instagram_id})
 
     @build_user_from_dict
     def find_followed_users(self):
@@ -143,7 +156,7 @@ class BotRepositoryMongoDb:
         :rtype: list of instabotpatrik.model.InstagramUser
         """
         # Lets not fall into premature optimizations here yet...
-        return list(self.users_collection.find(filter={"we_follow_user": True}))
+        return list(self.users_collection.find(filter={"detail.we_follow_user": True}))
 
     def update_media(self, media):
         """

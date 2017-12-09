@@ -81,18 +81,20 @@ class InstabotCore:
     # TODO: Unit test
     def get_media_owner(self, media):
         """
+        Tries to find user by instagram_id in DB. If not found, or nothing other than instagram_id is known about
+        this user, API is called to fetch details and user details are updated in DB. In the end, it's guaranteed
+        that user with details is returned.
         :param media:
         :type media: instabotpatrik.model.InstagramMedia
         :return: owner
         :rtype: instabotpatrik.model.InstagramUser
         """
         user = self.repository.find_user(instagram_id=media.owner_id)
-        if user is None or user.username is None:
-            user_api = self.api_client.get_user_detail()
-            user.url = user_api.url
-            user.username = user_api.username
-            user.count_shared_media = user_api.count_shared_media
-            user.count_follows = user_api.count_follows
-            user.count_followed_by = user_api.count_followed_by
+        if user is None:
+            user = instabotpatrik.model.InstagramUser(instagram_id=media.owner_id)
+        if user.is_fully_known() is False:
+            media = self.api_client.get_media_detail(media.shortcode)  # display media detail
+            api_user = self.api_client.get_user_with_details(media.owner_username)  # go to user profile
+            user.update_data(api_user)
             self.repository.update_user(user)
         return user

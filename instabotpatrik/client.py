@@ -4,8 +4,7 @@ import time
 import random
 import logging
 
-from instabotpatrik.model import InstagramMedia
-from instabotpatrik.model import InstagramUser
+import instabotpatrik
 
 if 'threading' in sys.modules:
     del sys.modules['threading']
@@ -44,6 +43,14 @@ class InstagramClient:
                  user_password,
                  requests_session,
                  proxy=""):
+        """
+
+        :param user_login:
+        :param user_password:
+        :param requests_session:
+        :type requests_session: requests.Session
+        :param proxy:
+        """
         self.s = requests_session
         self.proxy = proxy
         if proxy != "":
@@ -131,7 +138,7 @@ class InstagramClient:
             r = self.s.get('https://www.instagram.com/')
             finder = r.text.find(self.user_login)
             if finder != -1:
-                self.our_instagram_id = self.get_user_detail(self.user_login)
+                self.our_instagram_id = self.get_user_with_details(self.user_login)
                 self._login_status = True
                 logging.info('%s login success!', self.user_login)
                 return True
@@ -153,6 +160,7 @@ class InstagramClient:
             self.s.post(self.url_logout, data=logout_post)
             logging.info("Logout success!")
             self._login_status = False
+            self.s.close()
             return True
         except Exception as e:
             logging.error(e, exc_info=True)
@@ -169,11 +177,11 @@ class InstagramClient:
             media_dict = list(r_object['tag']['media']['nodes'])
             media_objs = []
             for node in media_dict:
-                node_obj = InstagramMedia(instagram_id=node['id'],
-                                          shortcode=node['code'],
-                                          owner_id=node['owner']['id'],
-                                          like_count=node['likes']['count'],
-                                          caption=node['caption'])
+                node_obj = instabotpatrik.model.InstagramMedia(instagram_id=node['id'],
+                                                               shortcode=node['code'],
+                                                               owner_id=node['owner']['id'],
+                                                               like_count=node['likes']['count'],
+                                                               caption=node['caption'])
                 media_objs.append(node_obj)
 
             return media_objs
@@ -205,7 +213,7 @@ class InstagramClient:
     #   }
     # }
 
-    def get_user_detail(self, username):
+    def get_user_with_details(self, username):
         """
         :param media_code:
         :return:
@@ -214,14 +222,15 @@ class InstagramClient:
         try:
             r_object = self.get_request(self.url_user_detail % username)
             user_info = r_object['user']
-            return InstagramUser(instagram_id=user_info['id'],
-                                 url=user_info['external_url'],
-                                 username=user_info['username'],
-                                 count_shared_media=user_info['media']['count'],
-                                 count_follows=user_info['follows']['count'],
-                                 count_followed_by=user_info['followed_by']['count'],
-                                 we_follow_user=user_info['followed_by_viewer'],
-                                 user_follows_us=user_info['follows_viewer'])
+            detail = instabotpatrik.model.InstagramUserDetail(url=user_info['external_url'],
+                                                              count_shared_media=user_info['media']['count'],
+                                                              count_follows=user_info['follows']['count'],
+                                                              count_followed_by=user_info['followed_by']['count'],
+                                                              we_follow_user=user_info['followed_by_viewer'],
+                                                              user_follows_us=user_info['follows_viewer'])
+            return instabotpatrik.model.InstagramUser(instagram_id=user_info['id'],
+                                                      username=user_info['username'],
+                                                      user_detail=detail)
 
         except Exception as e:
             logging.error(e, exc_info=True)
@@ -275,13 +284,15 @@ class InstagramClient:
         try:
             r_object = self.get_request(self.url_media_detail % shortcode_media)
             shortcode_media = r_object['graphql']['shortcode_media']
-            return InstagramMedia(instagram_id=shortcode_media['id'],
-                                  shortcode=shortcode_media['shortcode'],
-                                  owner_id=shortcode_media['owner']['id'],
-                                  owner_username=shortcode_media['owner']['username'],
-                                  caption=shortcode_media['edge_media_to_caption']['edges'][0]['node']['text'],
-                                  is_liked=shortcode_media['viewer_has_liked'],
-                                  like_count=shortcode_media['edge_media_preview_like']['count'])
+            return instabotpatrik.model.InstagramMedia(instagram_id=shortcode_media['id'],
+                                                       shortcode=shortcode_media['shortcode'],
+                                                       owner_id=shortcode_media['owner']['id'],
+                                                       owner_username=shortcode_media['owner']['username'],
+                                                       caption=
+                                                       shortcode_media['edge_media_to_caption']['edges'][0]['node'][
+                                                           'text'],
+                                                       is_liked=shortcode_media['viewer_has_liked'],
+                                                       like_count=shortcode_media['edge_media_preview_like']['count'])
         except Exception as e:
             logging.error(e, exc_info=True)
             return None

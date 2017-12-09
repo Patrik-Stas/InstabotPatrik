@@ -19,20 +19,23 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
             except yaml.YAMLError as exc:
                 print(exc)
 
-    def test_run(self):
+    def runTest(self):
         credentials = self.load_instagram_credentials()
-        client = instabotpatrik.client.InstagramClient(
+        self.client = instabotpatrik.client.InstagramClient(
             user_login=credentials['user']['username'],
             user_password=credentials['user']['password'],
             requests_session=requests.Session()
         )
-        medias = client.get_latest_media_by_tag("prague")
+        medias = self.client.get_latest_media_by_tag("prague")
         first = medias[0]
         self.assertGreater(len(medias), 0, "No media received")
         self.assertIsNotNone(first.instagram_id)
         self.assertIsNotNone(first.owner_id)
         self.assertIsNotNone(first.shortcode)
         print(str(medias[0]))
+
+    def tearDown(self):
+        self.client.logout()
 
 
 if __name__ == '__main__':

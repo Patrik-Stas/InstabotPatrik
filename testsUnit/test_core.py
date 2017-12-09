@@ -6,11 +6,14 @@ import unittest
 import unittest.mock
 
 
-class ItShouldNotIncludeOwnMediaByDefault(unittest.TestCase):
+class InstabotCoreTestCase(unittest.TestCase):
     def setUp(self):
         self.client_mock = unittest.mock.create_autospec(instabotpatrik.client.InstagramClient)
         self.repo_mock = unittest.mock.create_autospec(instabotpatrik.repository.BotRepositoryMongoDb)
         self.core = instabotpatrik.core.InstabotCore(repository=self.repo_mock, api_client=self.client_mock)
+
+
+class ItShouldNotIncludeOwnMediaByDefault(InstabotCoreTestCase):
 
     def test_run(self):
         media = [instabotpatrik.model.InstagramMedia("id1", "code1", "owner_id1", "caption1"),
@@ -22,11 +25,7 @@ class ItShouldNotIncludeOwnMediaByDefault(unittest.TestCase):
         self.assertEqual("owner_id1", foobar_medias[0].owner_id)
 
 
-class ItShoulIncludeOwnMedia(unittest.TestCase):
-    def setUp(self):
-        self.client_mock = unittest.mock.create_autospec(instabotpatrik.client.InstagramClient)
-        self.repo_mock = unittest.mock.create_autospec(instabotpatrik.repository.BotRepositoryMongoDb)
-        self.core = instabotpatrik.core.InstabotCore(repository=self.repo_mock, api_client=self.client_mock)
+class ItShoulIncludeOwnMedia(InstabotCoreTestCase):
 
     def test_run(self):
         media = [instabotpatrik.model.InstagramMedia("id1", "code1", "owner_id1", "caption1"),
@@ -37,5 +36,3 @@ class ItShoulIncludeOwnMedia(unittest.TestCase):
         self.assertEqual(2, len(foobar_medias))
         self.assertTrue("owner_id1" in [media.owner_id for media in foobar_medias])
         self.assertTrue("my_id" in [media.owner_id for media in foobar_medias])
-
-
