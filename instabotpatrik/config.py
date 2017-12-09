@@ -6,7 +6,8 @@ class Config:
     def __init__(self, config_path):
         self.config = configparser.ConfigParser()
         logging.info("Config reading values from %s", config_path)
-        self.config.read_file(open(config_path))
+        with open(config_path) as m:
+            self.config.read_file(m)
 
     def get_db_host(self):
         return self.config['database']['db_host']

@@ -89,6 +89,10 @@ class InstabotCore:
         user = self.repository.find_user(instagram_id=media.owner_id)
         if user is None or user.username is None:
             user_api = self.api_client.get_user_detail()
-            user.update_basic_data(user_api)
+            user.url = user_api.url
+            user.username = user_api.username
+            user.count_shared_media = user_api.count_shared_media
+            user.count_follows = user_api.count_follows
+            user.count_followed_by = user_api.count_followed_by
             self.repository.update_user(user)
         return user

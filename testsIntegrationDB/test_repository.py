@@ -6,25 +6,24 @@ import pymongo
 import instabotpatrik.repository
 import instabotpatrik.model
 import time
+from testsIntegrationDB import common
 
 logging.getLogger().setLevel(30)
 
 
-class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
-
+class RepositoryTestCase(unittest.TestCase):
     def setUp(self):
-        self.config = instabotpatrik.config.Config(
-            config_path=instabotpatrik.tools.get_path_to_file_in_directory_of_this_file("test.ini"))
+        self.config = common.get_config()
+        self.mongo_client = pymongo.MongoClient('localhost', 27017)
+        self.repository = common.create_repo(self.config, self.mongo_client)
 
     def tearDown(self):
         self.mongo_client.drop_database(self.config.get_db_name())
 
+
+class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
+
     def test_run(self):
-        self.mongo_client = pymongo.MongoClient('localhost', 27017)
-        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
-                                                                    database_name=self.config.get_db_name(),
-                                                                    users_collection_name=self.config.get_collection_users_name(),
-                                                                    media_collection_name=self.config.get_collection_media_name())
         instagram_id = "nn213b1jkbjk"
         user1 = instabotpatrik.model.InstagramUser(
             instagram_id=instagram_id,
@@ -37,8 +36,8 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
             user_follows_us=True,
             count_given_likes=12
         )
-        repository.update_user(user1)
-        user1_loaded = repository.find_user(instagram_id)
+        self.repository.update_user(user1)
+        user1_loaded = self.repository.find_user(instagram_id)
 
         self.assertEqual(user1_loaded.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded.url, user1.url)
@@ -57,9 +56,9 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         user1_loaded.count_followed_by = 12321
         user1_loaded.user_follows_us = False
         user1_loaded.last_like_given_timestamp = like_timestamp
-        repository.update_user(user1_loaded)
+        self.repository.update_user(user1_loaded)
 
-        user1_loaded2 = repository.find_user(instagram_id)
+        user1_loaded2 = self.repository.find_user(instagram_id)
 
         self.assertEqual(user1_loaded2.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded2.url, user1.url)
@@ -75,20 +74,8 @@ class ItShouldSaveAndLoadUpdateUser(unittest.TestCase):
         self.assertEqual(user1_loaded2.count_given_likes, user1.count_given_likes)
 
 
-class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
-    def setUp(self):
-        self.config = instabotpatrik.config.Config(
-            config_path=instabotpatrik.tools.get_path_to_file_in_directory_of_this_file("test.ini"))
-
-    def tearDown(self):
-        self.mongo_client.drop_database(self.config.get_db_name())
-
+class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):
     def test_run(self):
-        self.mongo_client = pymongo.MongoClient('localhost', 27017)
-        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
-                                                                    database_name=self.config.get_db_name(),
-                                                                    users_collection_name=self.config.get_collection_users_name(),
-                                                                    media_collection_name=self.config.get_collection_media_name())
         instagram_id = "nn213b1jkbjk"
         media1 = instabotpatrik.model.InstagramMedia(
             instagram_id=instagram_id,
@@ -100,8 +87,8 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
             is_liked=False,
             time_liked=time.time()
         )
-        repository.update_media(media1)
-        media1_loaded = repository.find_media_by_id(instagram_id)
+        self.repository.update_media(media1)
+        media1_loaded = self.repository.find_media_by_id(instagram_id)
 
         self.assertEqual(media1_loaded.instagram_id, media1.instagram_id)
         self.assertEqual(media1_loaded.shortcode, media1.shortcode)
@@ -115,8 +102,8 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
         media1_loaded.is_liked = True
         media1_loaded.caption = "changedcaption"
 
-        repository.update_media(media1_loaded)
-        media1_loaded2 = repository.find_media_by_id(instagram_id)
+        self.repository.update_media(media1_loaded)
+        media1_loaded2 = self.repository.find_media_by_id(instagram_id)
 
         self.assertEqual(media1_loaded2.instagram_id, media1.instagram_id)
         self.assertEqual(media1_loaded2.shortcode, media1.shortcode)
@@ -128,19 +115,8 @@ class ItShouldSaveAndLoadUpdateMedia(unittest.TestCase):
         self.assertEqual(media1_loaded2.owner_username, media1.owner_username)
 
 
-class ItShouldFindUserFollowedUsers(unittest.TestCase):
-    def setUp(self):
-        self.config = instabotpatrik.config.Config(config_path=get_path_to_file_in_directory_of_this_file("test.ini"))
-
-    def tearDown(self):
-        self.mongo_client.drop_database(self.config.get_db_name())
-
-    def test_run(self):
-        self.mongo_client = pymongo.MongoClient('localhost', 27017)
-        repository = instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=self.mongo_client,
-                                                                    database_name=self.config.get_db_name(),
-                                                                    users_collection_name=self.config.get_collection_users_name(),
-                                                                    media_collection_name=self.config.get_collection_media_name())
+class ItShouldFindUserFollowedUsers(RepositoryTestCase):
+    def runTest(self):
         user1 = instabotpatrik.model.InstagramUser(
             instagram_id="abc",
             url="www.url.com",
@@ -171,10 +147,10 @@ class ItShouldFindUserFollowedUsers(unittest.TestCase):
             we_follow_user=True,
             user_follows_us=False
         )
-        repository.update_user(user1)
-        repository.update_user(user2)
-        repository.update_user(user3)
-        followed = repository.find_followed_users()
+        self.repository.update_user(user1)
+        self.repository.update_user(user2)
+        self.repository.update_user(user3)
+        followed = self.repository.find_followed_users()
 
         self.assertEqual(len(followed), 2)
         self.assertTrue("xyz" in [user.instagram_id for user in followed])

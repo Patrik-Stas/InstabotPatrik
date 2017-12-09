@@ -30,28 +30,18 @@ class InstagramUser:
 
     def register_follow(self):
         self.last_follow_given_timestamp = instabotpatrik.tools.get_time()
+        self.we_follow_user = True
 
     def register_unfollow(self):
         self.last_unfollow_given_timestamp = instabotpatrik.tools.get_time()
+        self.we_follow_user = False
 
     def register_like(self):
         self.last_like_given_timestamp = instabotpatrik.tools.get_time()
-        self.count_given_likes += 1
-
-    def update_basic_data(self, other):
-        """
-        :param other: other user as source of data
-        :type other: InstagramUser
-        :return:
-        """
-        if self.instagram_id != other.instagram_id:
-            raise Exception("Invalid data update - refusing to update user from other user with different instagram_id")
-        self.url = other.url
-        self.username = other.username
-        self.count_shared_media = other.count_shared_media
-        self.count_follows = other.count_follows
-        self.count_followed_by = other.count_followed_by
-        return self
+        if self.count_given_likes is None:
+            self.count_given_likes = 1
+        else:
+            self.count_given_likes += 1
 
 
 class InstagramMedia:
@@ -74,4 +64,5 @@ class InstagramMedia:
         self.owner_username = owner_username
 
     def add_like(self):
+        self.time_liked = instabotpatrik.tools.get_time()
         self.is_liked = True
