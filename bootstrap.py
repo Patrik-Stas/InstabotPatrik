@@ -1,10 +1,17 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
 
 import argparse
 import instabotpatrik
+import os
 
 parser = argparse.ArgumentParser(description='Instagram follow/unfollow/like automation')
-argparse.parser.add_argument('--config-file', default="dev.ini", help='Path to configuration file')
-args = vars(parser.parse_args())
+parser.add_argument('--config', help='Path to configuration file', required=True)
 
-instabotpatrik.runner.BasicSetup(config_path=args['config-file'])
+args = vars(parser.parse_args())
+config_path = args['config']
+if not os.path.isabs(config_path):  # if path is relative, then build it from <cwd>/<relative path>
+    config_path = os.path.join(os.getcwd(), config_path)
+
+bot_runner = instabotpatrik.runner.BasicSetup(config_path=config_path)
+
+bot_runner.run()
