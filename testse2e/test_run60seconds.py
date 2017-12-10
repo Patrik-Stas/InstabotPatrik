@@ -23,10 +23,9 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
             except yaml.YAMLError as exc:
                 print(exc)
 
-    # Let's keep the E2E db for data inspection
-    # def drop_e2e_database(self):
-    #     logging.info("E2E tearDown DB cleanup. Dropping database %s", self.config.get_db_name())
-    #     self.mongo_client.drop_database(self.config.get_db_name())
+    def drop_e2e_database(self):
+        logging.info("E2E tearDown DB cleanup. Dropping database %s", self.config.get_db_name())
+        self.mongo_client.drop_database(self.config.get_db_name())
 
     def init_e2e_database(self):
         logging.info("Going to intialize E2E testing database.")
@@ -56,11 +55,8 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
         os.path.dirname(__file__)
         bot_runner.run()
 
-    def tearDown(self):
-        self.drop_e2e_database()
-
     def runTest(self):
         bot_runner = instabotpatrik.runner.BasicSetup(cfg=self.config)
         bot_runner.run()
-        time.sleep(60)
+        time.sleep(180)
         bot_runner.stop()

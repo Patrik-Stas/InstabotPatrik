@@ -20,7 +20,7 @@ class BasicSetup:
                                                            media_collection_name=self.cfg.collection_media_name())
 
         self.repo_config = \
-            instabotpatrik.repository.ConfigRepositoryMongoDb(database_name=self.mongo_client,
+            instabotpatrik.repository.ConfigRepositoryMongoDb(database_name=self.cfg.get_db_name(),
                                                               config_collection_name=self.cfg.collection_config_name(),
                                                               mongo_client=self.mongo_client)
 

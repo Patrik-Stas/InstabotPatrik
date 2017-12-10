@@ -26,3 +26,9 @@ class Config:
 
     def collection_config_name(self):
         return self.config['database']['db_collection_config']
+
+    def get_instagram_username(self):
+        return self.config['instagram']['username']
+
+    def get_instagram_password(self):
+        return self.config['instagram']['password']

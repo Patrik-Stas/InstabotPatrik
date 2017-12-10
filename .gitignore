@@ -76,3 +76,4 @@ ENV/
 *templates/.vars.json
 db_prod_init.json
 db_test_init.json
+config_local.ini
