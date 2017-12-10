@@ -83,7 +83,12 @@ class InstaBot:
         self.actions_timestamps[action_name] - instabotpatrik.tools.get_time()
 
     def run(self):
-        logging.info("Starting bot")
+        logging.info("Starting bot with following configuration:")
+
+        logging.info("like_per_day:%d  -> like_delay: %d " % (self.like_per_day, self.like_delay))
+        logging.info("follow_per_day:%d  -> unfollow_delay: %d " % (self.follow_per_day, self.unfollow_delay))
+        logging.info("unfollow_per_day:%d  -> follow_delay: %d " % (self.unfollow_per_day, self.follow_delay))
+
         if not self.instagram_client.is_logged_in():
             self.instagram_client.login()
 
@@ -97,6 +102,8 @@ class InstaBot:
 
                 media_users = [self.core.get_media_owner(media) for media in medias]
 
+                logging.info("Starting loop for media/user. "
+                             "We have %d media items and %d users", len(medias), len(media_users))
                 for loop in range(0, len(medias)):
                     if self._can_like():
                         self.strategy_like.like(medias)

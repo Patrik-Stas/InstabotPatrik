@@ -23,9 +23,10 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
             except yaml.YAMLError as exc:
                 print(exc)
 
-    def drop_e2e_database(self):
-        logging.info("E2E tearDown DB cleanup. Dropping database %s", self.config.get_db_name())
-        self.mongo_client.drop_database(self.config.get_db_name())
+    # Let's keep the E2E db for data inspection
+    # def drop_e2e_database(self):
+    #     logging.info("E2E tearDown DB cleanup. Dropping database %s", self.config.get_db_name())
+    #     self.mongo_client.drop_database(self.config.get_db_name())
 
     def init_e2e_database(self):
         logging.info("Going to intialize E2E testing database.")
