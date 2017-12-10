@@ -14,28 +14,44 @@ mongo_port = 27017
 
 @task
 def test_api(ctx):
-    ctx.run('python -m unittest discover -v -s ./testsIntegrationAPI/ -p "test_*.py"')
+    ctx.run('coverage run --source=instabotpatrik/  -m unittest discover -v -s ./testsIntegrationAPI/ -p "test_*.py"')
 
 
 @task
 def test_db(ctx):
-    ctx.run('python -m unittest discover -v -s ./testsIntegrationDB/ -p "test_*.py"')
+    ctx.run('coverage run --source=instabotpatrik/  -m unittest discover -v -s ./testsIntegrationDB/ -p "test_*.py"')
 
 
 @task
 def test_unit(ctx):
-    ctx.run('python -m unittest discover -v -s ./testsUnit/ -p "test_*.py"')
+    ctx.run('coverage run --source=instabotpatrik/  -m unittest discover -v -s ./testsUnit/ -p "test_*.py"')
+
 
 @task
 def test_local(ctx):
-    test_unit(ctx)
-    test_db(ctx)
+    ctx.run('coverage run --source=instabotpatrik/  -m unittest discover -v -s ./testsUnit/ -p "test_*.py"')
+    ctx.run('coverage run --append --source=instabotpatrik/  '
+            '-m unittest discover -v -s ./testsIntegrationDB/ -p "test_*.py"')
 
 
 @task
 def test_all(ctx):
-    test_local(ctx)
-    test_api(ctx)
+    ctx.run('coverage run --source=instabotpatrik/  -m unittest discover -v -s ./testsUnit/ -p "test_*.py"')
+    ctx.run('coverage run --append --source=instabotpatrik/  '
+            '-m unittest discover -v -s ./testsIntegrationDB/ -p "test_*.py"')
+    ctx.run('coverage run --append --source=instabotpatrik/ '
+            '-m unittest discover -v -s ./testsIntegrationAPI/ -p "test_*.py"')
+
+
+@task
+def generate_coverage_report(ctx):
+    ctx.run('coverage html')
+
+
+@task(pre=[generate_coverage_report])
+def show_coverage(ctx):
+    ctx.run('open htmlcov/index.html')
+
 
 def generate_db_init_prod():
     var_dict = _get_env_config('prod')
