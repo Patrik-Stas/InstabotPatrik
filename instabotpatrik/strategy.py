@@ -45,26 +45,17 @@ class StrategyLikeBasic:
         self.media_min_like = 0
         self.core = core
 
-    def can_like(self, media):
-        """
-        :type
-        :type media: instabotpatrik.model.InstagramMedia
-        :return:
-        """
-        like_count = media.like_count
-        return ((self.media_min_like <= like_count <= self.media_max_like) or
-                (self.media_max_like == 0 and like_count >= self.media_min_like) or
-                (self.media_min_like == 0 and like_count <= self.media_max_like) or
-                (self.media_min_like == 0 and self.media_max_like == 0))
-
     def like(self, medias):
         """
+        Like one of the medias
         :type medias: list of instabotpatrik.model.InstagramMedia
         :return:
         """
         for media in medias:
-            if self.can_like(media):
-                self.core.like(media)
+            if media.is_liked is False and (self.media_min_like <= media.like_count <= self.media_max_like):
+                if self.core.like(media):
+                    return True
+        return False
 
 
 class StrategyMediaScanBasic:
