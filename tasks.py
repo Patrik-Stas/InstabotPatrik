@@ -5,6 +5,7 @@ import json
 from string import Template
 
 db_init_prod_path = "db_prod_init.js"
+db_init_e2e_path = "testse2e/db_prod_init.js"
 db_init_template_path = "templates/db_init.template.js"
 db_template_vars_path = "templates/db_init.vars.json"
 
@@ -52,6 +53,10 @@ def generate_coverage_report(ctx):
 def show_coverage(ctx):
     ctx.run('open htmlcov/index.html')
 
+def generate_db_init_e2e():
+    var_dict = _get_env_config('e2e')
+    interpolate_template(db_init_template_path, var_dict, db_init_e2e_path)
+
 
 def generate_db_init_prod():
     var_dict = _get_env_config('prod')
@@ -67,6 +72,7 @@ def _get_env_config(env_name):
 @task
 def generate_db_init(ctx):
     generate_db_init_prod()
+    generate_db_init_e2e()
 
 
 @task

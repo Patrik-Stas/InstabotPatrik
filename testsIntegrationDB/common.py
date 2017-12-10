@@ -14,5 +14,5 @@ def get_config():
 def create_repo(config, mongo_client):
     return instabotpatrik.repository.BotRepositoryMongoDb(mongo_client=mongo_client,
                                                           database_name=config.get_db_name(),
-                                                          users_collection_name=config.get_collection_users_name(),
-                                                          media_collection_name=config.get_collection_media_name())
+                                                          users_collection_name=config.collection_users_name(),
+                                                          media_collection_name=config.collection_media_name())

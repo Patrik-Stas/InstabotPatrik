@@ -110,7 +110,8 @@ class InstaBot:
             except Exception as e:
                 logging.error(e, exc_info=True)
                 instabotpatrik.tools.go_sleep(duration_sec=100, plusminus=15)
+        logging.info("Bot is stopped.")
 
     def stop(self):
         self.stopped = True
-        logging.info("Stopped bot")
+        logging.info("Stopped flag was set.")

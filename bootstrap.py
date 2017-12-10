@@ -12,6 +12,7 @@ config_path = args['config']
 if not os.path.isabs(config_path):  # if path is relative, then build it from <cwd>/<relative path>
     config_path = os.path.join(os.getcwd(), config_path)
 
-bot_runner = instabotpatrik.runner.BasicSetup(config_path=config_path)
+config = instabotpatrik.config.Config(config_path)
+bot_runner = instabotpatrik.runner.BasicSetup(cfg=config)
 
 bot_runner.run()

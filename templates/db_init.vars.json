@@ -1,5 +1,5 @@
 {
-  "prod" : {
+  "prod": {
     "db_name": "instabot",
     "collection_media_name": "media",
     "collection_users_name": "users",
@@ -11,6 +11,16 @@
       "#힌국말",
       "ывплывло",
       "dobrý děňôčik ľoŕa"
+    ]
+  },
+  "e2e": {
+    "db_name": "e2etest_instabot",
+    "collection_media_name": "e2etest_media",
+    "collection_users_name": "e2etest_users",
+    "collection_config_name": "e2etest_config",
+    "tag_list": [ "good", "follow4follow", "hello", "nice", "awesome", "city", "love", "school",
+      "boy", "girl", "followforfollow",  "instagood", "pretty", "amazing", "travel", "home",
+      "family", "work", "office"
     ]
   }
 }
