@@ -3,6 +3,11 @@ import random
 import instabotpatrik
 
 
+class InsufficientInformationException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class StrategyFollowBasic:
     def __init__(self, core):
         """
@@ -14,50 +19,63 @@ class StrategyFollowBasic:
         self.max_follows = 100
         self.min_folows = 10
 
-    def _can_follow(self, user):
+    def should_follow(self, user):
         """
-        :param user:
+        :param user: user which should be fully known - should have populated details
         :type user: instabotpatrik.model.InstagramUser
-        :return:
+        :rtype: bool
         """
-        # TODO: We need to consider situation when detail is None. Maybe someone passed users with only id and history, without details
+        if not user.is_fully_known():
+            raise InsufficientInformationException("User %s is not fully known. StrategyFollowBasic can't determine "
+                                                   "whether we should follow or not.")
         return not user.detail.we_follow_user and \
                (self.min_followed_by < user.detail.we_follow_user < self.max_followed_by) and \
                (self.min_folows < user.detail.count_follows < self.max_follows)
 
-    def follow(self, users):
-        """
-        :param users:
-        :type users: list of instabotpatrik.model.InstagramUser
-        :return:
-        """
-        for user in users:
-            if self._can_follow(user):
-                if self.core.follow(user):
-                    return True
-        return False
-
 
 class StrategyLikeBasic:
-    def __init__(self, core):
+    def __init__(self):
         """
         :type core: instabotpatrik.core.InstabotCore
         """
-        self.media_max_like = 120
+        self.media_max_like = 400
         self.media_min_like = 0
+
+    def should_like(self, media):
+        """
+        :type media: instabotpatrik.model.InstagramMedia
+        :rtype: bool
+        """
+        return media.is_liked is False \
+            and (self.media_min_like <= media.like_count <= self.media_max_like)
+
+
+class StrategyUnfollowBasic:
+    def __init__(self, core):
+        """
+        :param user: user which should be fully known - should have populated details
+        :type core: instabotpatrik.core.InstabotCore
+        """
+        self.we_follow_min_time_sec = 60 * 60 * 50  # follow everyone for at least 50 hours
         self.core = core
 
-    def like(self, medias):
+    def should_unfollow(self, user):
         """
-        Like one of the medias
-        :type medias: list of instabotpatrik.model.InstagramMedia
-        :return:
+        Unfollows one or zero of users passed in parameter
+        :type user: instabotpatrik.model.InstagramUser
+        :rtype: bool
         """
-        for media in medias:
-            if media.is_liked is False and (self.media_min_like <= media.like_count <= self.media_max_like):
-                if self.core.like(media):
-                    return True
-        return False
+        # TODO: we should not access .detail of user ever, should be private. Instead, give user interface ...
+        # TODO: ... for us to access information contained in .detail
+        if user.is_fully_known():
+            return user.detail.user_follows_us is False \
+                and self._follow_time_has_passed(user)
+        else:
+            raise InsufficientInformationException("User %s is not fully known. StrategyUnfollowBasic can't"
+                                                   " determine whether we should follow or not.")
+
+    def _follow_time_has_passed(self, user):
+        return time.time() - user.time_we_started_following > self.we_follow_min_time_sec
 
 
 class StrategyMediaScanBasic:
@@ -75,33 +93,6 @@ class StrategyMediaScanBasic:
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
         return self.core.get_latest_media_by_tag(tag=tag, include_own=False)
-
-
-class StrategyUnfollowBasic:
-    def __init__(self, core):
-        """
-        :type core: instabotpatrik.core.InstabotCore
-        """
-        self.we_follow_min_time_sec = 60 * 60 * 50  # follow everyone for at least 50 hours
-        self.core = core
-
-    def unfollow(self, followed_users):
-        """
-        Unfollows one or zero of users passed in parameter
-        :param followed_users:
-        :type followed_users: list of instabotpatrik.model.InstagramUser
-        :return: Number of accounts unfollowed
-        """
-        followed_count = 0
-        for user in followed_users:
-            if user.user_follows_us is False and self._follow_time_has_passed(user):
-                if self.core.unfollow(user):
-                    followed_count += 1
-                    break
-        return followed_count
-
-    def _follow_time_has_passed(self, user):
-        return time.time() - user.time_we_started_following > self.we_follow_min_time_sec
 
 
 class StrategyTagSelectionBasic:

@@ -12,3 +12,7 @@ Run `./bootstrap.py --help` to get help.
 ## TODO:
 - Bot should consider people who have private profiles and follow
 requests have to be be approved by the user.
+- Bot could give multiple likes at once (real-life situation when you
+open up someone's profile and you like the thumbnails, you take a look
+at couple of them and give some likes). But keep in mind not to flood
+a person with likes...liking every single picture over time...
