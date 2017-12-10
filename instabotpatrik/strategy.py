@@ -20,9 +20,10 @@ class StrategyFollowBasic:
         :type user: instabotpatrik.model.InstagramUser
         :return:
         """
-        return not user.we_follow_user and \
-               self.min_followed_by < user.count_followed_by < self.max_followed_by and \
-               self.min_folows < user.count_follows < self.max_follows
+        # TODO: We need to consider situation when detail is None. Maybe someone passed users with only id and history, without details
+        return not user.detail.we_follow_user and \
+               (self.min_followed_by < user.detail.we_follow_user < self.max_followed_by) and \
+               (self.min_folows < user.detail.count_follows < self.max_follows)
 
     def follow(self, users):
         """
@@ -32,8 +33,9 @@ class StrategyFollowBasic:
         """
         for user in users:
             if self._can_follow(user):
-                self.core.follow(user)
-                return
+                if self.core.follow(user):
+                    return True
+        return False
 
 
 class StrategyLikeBasic:
@@ -65,14 +67,14 @@ class StrategyMediaScanBasic:
         """
         self.core = core
 
-    def get_media(self, tag):
+    def get_media_of_other_people(self, tag):
         """
-        Returns list of the most recently posted media
+        Returns list of the most recently posted media, excluding our own.
         :param tag: tag to be scanner
         :return: list of recent media objects for tag
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
-        return self.core.get_latest_media_by_tag(tag)
+        return self.core.get_latest_media_by_tag(tag=tag, include_own=False)
 
 
 class StrategyUnfollowBasic:

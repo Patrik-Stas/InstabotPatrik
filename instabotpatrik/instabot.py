@@ -64,7 +64,6 @@ class InstaBot:
         self.stopped = False
         self.action_manager = instabotpatrik.tools.ActionManager()
 
-
     def _can_like(self):
         return self.like_per_day > 0 and self.is_action_allowed_now("like")
 
@@ -89,10 +88,11 @@ class InstaBot:
                 tag = self.strategy_tag_selection.get_tag()
                 logging.info("Starting main loop. Selected tag: %s", tag)
 
-                medias = self.strategy_media_scan.get_media(tag)
+                medias = self.strategy_media_scan.get_media_of_other_people(tag)
                 logging.info("For tag %s received recent media %s", tag, "%s" % [media for media in medias])
 
                 media_users = [self.core.get_media_owner(media) for media in medias]
+                media_users = list(filter(None.__ne__, media_users))  # Remove None elements
 
                 logging.info("Starting loop for media/user. "
                              "We have %d media items and %d users", len(medias), len(media_users))
