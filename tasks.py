@@ -5,7 +5,7 @@ import json
 from string import Template
 
 db_init_prod_path = "db_prod_init.js"
-db_init_e2e_path = "testse2e/db_prod_init.js"
+db_init_e2e_path = "testse2e/db_e2e_init.js"
 db_init_template_path = "templates/db_init.template.js"
 db_template_vars_path = "templates/db_init.vars.json"
 
