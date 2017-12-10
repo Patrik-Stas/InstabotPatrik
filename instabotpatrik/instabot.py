@@ -54,21 +54,16 @@ class InstaBot:
         self.unfollow_per_day = 200
 
         self.time_in_day = 24 * 60 * 60
-        self.like_delay = self.time_in_day / self.like_per_day
-        self.unfollow_delay = self.time_in_day / self.unfollow_per_day
-        self.follow_delay = self.time_in_day / self.follow_per_day
-        self.actions_timestamps = {}
+        self.like_delay_sec = self.time_in_day / self.like_per_day
+        self.unfollow_delay_sec = self.time_in_day / self.unfollow_per_day
+        self.follow_delay_sec = self.time_in_day / self.follow_per_day
         self.instagram_client.login()
         self.base_loop_timeout = 60 * 5
         self.tag_loop_timeout = 15
         self.error_timeout = 100
         self.stopped = False
+        self.action_manager = instabotpatrik.tools.ActionManager()
 
-    def is_action_allowed_now(self, action_name):
-        return time.time() > self.actions_timestamps[action_name]
-
-    def allow_action_after(self, action_name, allowed_after_timestamp):
-        self.actions_timestamps[action_name] = allowed_after_timestamp
 
     def _can_like(self):
         return self.like_per_day > 0 and self.is_action_allowed_now("like")
@@ -79,15 +74,12 @@ class InstaBot:
     def _can_unfollow(self):
         return self.unfollow_per_day > 0 and self.is_action_allowed_now("unfollow")
 
-    def time_left_till_allowed(self, action_name):
-        self.actions_timestamps[action_name] - instabotpatrik.tools.get_time()
-
     def run(self):
         logging.info("Starting bot with following configuration:")
 
-        logging.info("like_per_day:%d  -> like_delay: %d " % (self.like_per_day, self.like_delay))
-        logging.info("follow_per_day:%d  -> unfollow_delay: %d " % (self.follow_per_day, self.unfollow_delay))
-        logging.info("unfollow_per_day:%d  -> follow_delay: %d " % (self.unfollow_per_day, self.follow_delay))
+        logging.info("like_per_day:%d  -> like_delay: %d " % (self.like_per_day, self.like_delay_sec))
+        logging.info("follow_per_day:%d  -> unfollow_delay: %d " % (self.follow_per_day, self.unfollow_delay_sec))
+        logging.info("unfollow_per_day:%d  -> follow_delay: %d " % (self.unfollow_per_day, self.follow_delay_sec))
 
         if not self.instagram_client.is_logged_in():
             self.instagram_client.login()
@@ -105,15 +97,22 @@ class InstaBot:
                 logging.info("Starting loop for media/user. "
                              "We have %d media items and %d users", len(medias), len(media_users))
                 for loop in range(0, len(medias)):
+
                     if self._can_like():
                         self.strategy_like.like(medias)
+                        self.action_manager.allow_action_after_seconds('like', self.like_delay_sec)
+
                     if self._can_follow():
                         self.strategy_follow.follow(media_users)
+                        self.action_manager.allow_action_after_seconds('follow', self.follow_delay_sec)
+
                     if self._can_unfollow():
                         followed_users = self.repository_bot.find_followed_users()
                         self.strategy_unfollow.unfollow(followed_users)
+                        self.action_manager.allow_action_after_seconds('unfollow', self.unfollow_delay_sec)
 
                     instabotpatrik.tools.go_sleep(duration_sec=3, plusminus=2)
+
             except Exception as e:
                 logging.error(e, exc_info=True)
                 instabotpatrik.tools.go_sleep(duration_sec=100, plusminus=15)

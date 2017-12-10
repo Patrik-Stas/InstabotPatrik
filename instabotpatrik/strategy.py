@@ -126,3 +126,8 @@ class StrategyTagSelectionBasic:
         """
         tags = self.callable_get_tags()
         return random.choice(tags)
+
+
+class ActionTimingStrategy:
+    def __init__(self):
+        print("fo")

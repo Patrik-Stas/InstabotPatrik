@@ -82,7 +82,7 @@ class InstagramClient:
         logging.info("Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
         logging.debug("Response [%s] %s:\nBody:%s\n", method_type, url, json.dumps(parsed_response, indent=4))
 
-        time.sleep(3)  # Let's make sure we don't send too many requests at once
+        instabotpatrik.tools.go_sleep(3, 1)  # Let's make sure we don't send too many requests at once
 
         if 200 <= r.status_code < 300:
             return parsed_response
