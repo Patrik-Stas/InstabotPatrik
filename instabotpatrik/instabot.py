@@ -62,6 +62,7 @@ class InstaBot:
         self.base_loop_timeout = 60 * 5
         self.tag_loop_timeout = 15
         self.error_timeout = 100
+        self.stopped = False
 
     def is_action_allowed_now(self, action_name):
         return time.time() > self.actions_timestamps[action_name]
@@ -69,24 +70,24 @@ class InstaBot:
     def allow_action_after(self, action_name, allowed_after_timestamp):
         self.actions_timestamps[action_name] = allowed_after_timestamp
 
-    def can_like(self):
+    def _can_like(self):
         return self.like_per_day > 0 and self.is_action_allowed_now("like")
 
-    def can_follow(self):
+    def _can_follow(self):
         return self.follow_per_day > 0 and self.is_action_allowed_now("follow")
 
-    def can_unfollow(self):
+    def _can_unfollow(self):
         return self.unfollow_per_day > 0 and self.is_action_allowed_now("unfollow")
 
     def time_left_till_allowed(self, action_name):
         self.actions_timestamps[action_name] - instabotpatrik.tools.get_time()
 
     def run(self):
+        logging.info("Starting bot")
         if not self.instagram_client.is_logged_in():
-            logging.error("Bot can't run because Instagram client is not logged in.")
-            return
+            self.instagram_client.login()
 
-        while True:
+        while not self.stopped:
             try:
                 tag = self.strategy_tag_selection.get_tag()
                 logging.info("Starting main loop. Selected tag: %s", tag)
@@ -97,11 +98,11 @@ class InstaBot:
                 media_users = [self.core.get_media_owner(media) for media in medias]
 
                 for loop in range(0, len(medias)):
-                    if self.can_like():
+                    if self._can_like():
                         self.strategy_like.like(medias)
-                    if self.can_follow():
+                    if self._can_follow():
                         self.strategy_follow.follow(media_users)
-                    if self.can_unfollow():
+                    if self._can_unfollow():
                         followed_users = self.repository_bot.find_followed_users()
                         self.strategy_unfollow.unfollow(followed_users)
 
@@ -109,3 +110,7 @@ class InstaBot:
             except Exception as e:
                 logging.error(e, exc_info=True)
                 instabotpatrik.tools.go_sleep(duration_sec=100, plusminus=15)
+
+    def stop(self):
+        self.stopped = True
+        logging.info("Stopped bot")

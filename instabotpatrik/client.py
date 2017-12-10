@@ -100,7 +100,7 @@ class InstagramClient:
         :return: True if user was logged in, or login was succesfull. False otherwise
         :rtype: boolean
         """
-        if self.is_logged_in:
+        if self.is_logged_in():
             logging.info("Called login(), but already logged in.")
             return True
         self.s.cookies.update({
