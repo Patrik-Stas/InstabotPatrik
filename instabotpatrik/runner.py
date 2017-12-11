@@ -4,6 +4,10 @@
 import requests
 import pymongo
 import instabotpatrik
+import logging
+
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class BasicSetup:
@@ -25,18 +29,20 @@ class BasicSetup:
                                                               mongo_client=self.mongo_client)
 
         # API CLIENT
-        self.client = instabotpatrik.client.InstagramClient(user_login=self.repo_config.get_username(),
-                                                            user_password=self.repo_config.get_password(),
+        self.client = instabotpatrik.client.InstagramClient(user_login=self.cfg.get_instagram_username(),
+                                                            user_password=self.cfg.get_instagram_password(),
                                                             requests_session=requests.Session())
 
         # INSTABOT DEPENDENCIES
         self.core = instabotpatrik.core.InstabotCore(repository=self.repo_bot,
                                                      api_client=self.client)
-        self.strategy_like = instabotpatrik.strategy.StrategyLikeBasic(core=self.core)
-        self.strategy_follow = instabotpatrik.strategy.StrategyFollowBasic(core=self.core)
+
+        self.strategy_like = instabotpatrik.strategy.StrategyLikeBasic()
+        self.strategy_follow = instabotpatrik.strategy.StrategyFollowBasic()
+        self.strategy_unfollow = instabotpatrik.strategy.StrategyUnfollowBasic()
+
         self.strategy_media_scan = instabotpatrik.strategy.StrategyMediaScanBasic(core=self.core)
         self.strategy_tag_selection = instabotpatrik.strategy.StrategyTagSelectionBasic(self.repo_config.get_tags)
-        self.strategy_unfollow = instabotpatrik.strategy.StrategyUnfollowBasic(core=self.core)
 
         # INSTABOT
         self.instabot = instabotpatrik.instabot.InstaBot(core=self.core,

@@ -1,6 +1,10 @@
 import time
 import random
 import instabotpatrik
+import logging
+
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class InsufficientInformationException(Exception):
@@ -9,14 +13,10 @@ class InsufficientInformationException(Exception):
 
 
 class StrategyFollowBasic:
-    def __init__(self, core):
-        """
-        :type core: instabotpatrik.core.InstabotCore
-        """
-        self.core = core
-        self.max_followed_by = 800
-        self.min_followed_by = 10
-        self.max_follows = 100
+    def __init__(self):
+        self.max_followed_by = 1200
+        self.min_followed_by = 6
+        self.max_follows = 1200
         self.min_folows = 10
 
     def should_follow(self, user):
@@ -28,16 +28,23 @@ class StrategyFollowBasic:
         if not user.is_fully_known():
             raise InsufficientInformationException("User %s is not fully known. StrategyFollowBasic can't determine "
                                                    "whether we should follow or not.")
-        return not user.detail.we_follow_user and \
-               (self.min_followed_by < user.detail.we_follow_user < self.max_followed_by) and \
-               (self.min_folows < user.detail.count_follows < self.max_follows)
+        if user.detail.we_follow_user:
+            logging.info("Not going to try to follow user %s. We already follow him.", user.username)
+            return False
+        if not (self.min_followed_by < user.detail.count_followed_by < self.max_followed_by):
+            logging.info("Not going to try to follow user %s. He doesn't fits followed_by count condition." "Followed "
+                         "by %d whereas Min:%d Max:%d", user.username, user.detail.count_followed_by,
+                         self.min_followed_by, self.max_followed_by)
+        if not (self.min_folows < user.detail.count_follows < self.max_follows):
+            logging.info("Not going to try to follow user %s. He doesn't fits follows count condition. "
+                         "Followed by %d whereas Min:%d Max:%d", user.username, user.detail.count_follows,
+                         self.min_folows, self.max_follows)
+            return False
+        return True
 
 
 class StrategyLikeBasic:
     def __init__(self):
-        """
-        :type core: instabotpatrik.core.InstabotCore
-        """
         self.media_max_like = 400
         self.media_min_like = 0
 
@@ -46,18 +53,19 @@ class StrategyLikeBasic:
         :type media: instabotpatrik.model.InstagramMedia
         :rtype: bool
         """
-        return media.is_liked is False \
-            and (self.media_min_like <= media.like_count <= self.media_max_like)
+        if media.is_liked:
+            logging.info("Media shortcode %s is already liked", media.shortcode)
+            return False
+        if not (self.media_min_like <= media.like_count <= self.media_max_like):
+            logging.info("Media shortcode %s doesn't fit like count condition. Has %d likes. LimitMin:%d, LimitMax:%d",
+                         media.shortcode, media.like_count, self.media_min_like, self.media_max_like)
+            return False
+        return True
 
 
 class StrategyUnfollowBasic:
-    def __init__(self, core):
-        """
-        :param user: user which should be fully known - should have populated details
-        :type core: instabotpatrik.core.InstabotCore
-        """
+    def __init__(self):
         self.we_follow_min_time_sec = 60 * 60 * 50  # follow everyone for at least 50 hours
-        self.core = core
 
     def should_unfollow(self, user):
         """
@@ -68,14 +76,18 @@ class StrategyUnfollowBasic:
         # TODO: we should not access .detail of user ever, should be private. Instead, give user interface ...
         # TODO: ... for us to access information contained in .detail
         if user.is_fully_known():
-            return user.detail.user_follows_us is False \
-                and self._follow_time_has_passed(user)
+            if not user.detail.user_follows_us and self._follow_time_has_passed(user):
+                logging.info("We can unfollow %s cause he doesn't follow us, and we followed him long enough.",
+                             user.username)
+                return True
+            else:
+                return False
         else:
             raise InsufficientInformationException("User %s is not fully known. StrategyUnfollowBasic can't"
                                                    " determine whether we should follow or not.")
 
     def _follow_time_has_passed(self, user):
-        return time.time() - user.time_we_started_following > self.we_follow_min_time_sec
+        return time.time() - user.detail.time_we_started_following > self.we_follow_min_time_sec
 
 
 class StrategyMediaScanBasic:
@@ -110,8 +122,3 @@ class StrategyTagSelectionBasic:
         """
         tags = self.callable_get_tags()
         return random.choice(tags)
-
-
-class ActionTimingStrategy:
-    def __init__(self):
-        print("fo")

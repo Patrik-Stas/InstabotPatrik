@@ -1,6 +1,9 @@
 import instabotpatrik
-import logging
 from copy import deepcopy
+import logging
+
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class InstagramUserBotHistory:

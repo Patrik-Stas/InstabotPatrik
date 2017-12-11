@@ -24,4 +24,5 @@ class ItShouldCalculateMinimalWaitingTime(unittest.TestCase):
         manager.allow_action_after_seconds("follow", 3)
         manager.allow_action_after_seconds("like", 2)
         manager.allow_action_after_seconds("unfollow", 4)
-        self.assertAlmostEqual(2, manager.time_left_until_some_action_possible(), delta=0.1)
+        self.assertAlmostEqual(2, manager.time_left_until_some_action_possible()['sec_left'], delta=0.1)
+        self.assertEqual("like", manager.time_left_until_some_action_possible()['action_name'])

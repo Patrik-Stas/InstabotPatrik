@@ -1,5 +1,9 @@
 import pymongo
 import instabotpatrik
+import logging
+
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 def map_user_dict_to_obj(user_dict):
@@ -100,8 +104,8 @@ class BotRepositoryMongoDb:
 
     def update_user(self, user):
         """
-        :param user: Save user to database. User is identified by username. If user with such username exists, it will be updated.
-        If user with such username is not found, it will be inserted.
+        :param user: Save user to database. User is identified by username. If user with such username exists,
+        it will be updated. If user with such username is not found, it will be inserted.
         :type user: instabotpatrik.model.InstagramUser
         """
         detail_update = None if user.detail is None else {

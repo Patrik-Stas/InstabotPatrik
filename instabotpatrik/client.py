@@ -9,7 +9,7 @@ import instabotpatrik
 if 'threading' in sys.modules:
     del sys.modules['threading']
 
-logging.getLogger().setLevel(0)
+logging.getLogger().setLevel(20)
 logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
@@ -71,7 +71,8 @@ class InstagramClient:
         self.csrftoken = None
         self.our_instagram_id = None
 
-    def make_request(self, url, method_type, requests_callable):
+    @staticmethod
+    def make_request(url, method_type, requests_callable):
         """
         :return: True if returned status code is 200-299. False otherwise
         :rtype: dict
@@ -218,8 +219,6 @@ class InstagramClient:
 
     def get_user_with_details(self, username):
         """
-        :param media_code:
-        :return:
         :rtype: instabotpatrik.model.InstagramUser
         """
         try:
@@ -291,9 +290,8 @@ class InstagramClient:
                                                        shortcode=shortcode_media['shortcode'],
                                                        owner_id=shortcode_media['owner']['id'],
                                                        owner_username=shortcode_media['owner']['username'],
-                                                       caption=
-                                                       shortcode_media['edge_media_to_caption']['edges'][0]['node'][
-                                                           'text'],
+                                                       caption=shortcode_media['edge_media_to_caption']
+                                                       ['edges'][0]['node']['text'],
                                                        is_liked=shortcode_media['viewer_has_liked'],
                                                        like_count=shortcode_media['edge_media_preview_like']['count'])
         except Exception as e:

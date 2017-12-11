@@ -1,6 +1,9 @@
 import logging
 import instabotpatrik
 
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
+
 
 class InstabotCore:
     def __init__(self, repository, api_client):
@@ -32,6 +35,9 @@ class InstabotCore:
         :return: True if giving like was successfull
         :rtype: bool
         """
+        logging.info("[CORE] Want to like.  MediaID:%s MediaShortcode:%s OwnerId:%s", media.instagram_id,
+                     media.shortcode,
+                     media.owner_id)
         was_liked = self.api_client.like(media.instagram_id)
         if was_liked:
             logging.info("[CORE] Like success. MediaID:%s MediaShortcode:%s OwnerId:%s", media.instagram_id,
@@ -57,6 +63,7 @@ class InstabotCore:
         :return: True if giving follow was successfull
         :rtype: bool
         """
+        logging.info("[CORE] Want to follow. Username:%s id:%s", user.username, user.instagram_id)
         is_followed = self.api_client.follow(user.instagram_id)
         if is_followed:
             logging.info("[CORE] Follow success. Username:%s id:%s", user.username, user.instagram_id)
@@ -74,6 +81,7 @@ class InstabotCore:
         :return: True if giving unfollow was successfull
         :rtype: bool
         """
+        logging.info("[CORE] Want to unfollow. Username:%s id:%s", user.username, user.instagram_id)
         is_unfollowed = self.api_client.unfollow(user.instagram_id)
         if is_unfollowed:
             logging.info("[CORE] Unfollow success. Username:%s id:%s", user.username, user.instagram_id)

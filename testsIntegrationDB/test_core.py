@@ -23,7 +23,7 @@ class CoreDBInteractionsTestCase(unittest.TestCase):
 
 class ItShouldUpdateMediaInDBIfLiked(CoreDBInteractionsTestCase):
     def runTest(self):
-        self.client_mock.should_like.return_value = True
+        self.client_mock.like.return_value = True
         media1 = instabotpatrik.model.InstagramMedia(
             instagram_id="nn213b1jkbjk",
             shortcode="foobar42",
@@ -77,7 +77,7 @@ class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCas
             user_detail=detail,
             bot_history=bot_data
         )
-        self.client_mock.should_like.return_value = True
+        self.client_mock.like.return_value = True
         self.repo_bot.update_user(owner)
         like_time = time.time()
         mock_tools.get_time.return_value = like_time
@@ -92,7 +92,7 @@ class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCas
 
 class ItShouldCreateUserIfNotStoredAndHisMediaWasLiked(CoreDBInteractionsTestCase):
     def runTest(self):
-        self.client_mock.should_like.return_value = True
+        self.client_mock.like.return_value = True
 
         media1 = instabotpatrik.model.InstagramMedia(
             instagram_id="nn213b1jkbjk",

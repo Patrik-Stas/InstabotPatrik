@@ -4,6 +4,9 @@ import datetime
 import logging
 import instabotpatrik
 
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
+
 
 class InstaBot:
 
@@ -61,27 +64,23 @@ class InstaBot:
         self._stopped = False
         self.action_manager = instabotpatrik.tools.ActionManager()
 
-    def _can_like(self):
-        return self.like_per_day > 0 and self.is_action_allowed_now("like")
-
-    def _can_follow(self):
-        return self.follow_per_day > 0 and self.is_action_allowed_now("follow")
-
-    def _can_unfollow(self):
-        return self.unfollow_per_day > 0 and self.is_action_allowed_now("unfollow")
-
     def handle_media_like(self, media):
-        if self._can_like() and self.strategy_like.should_like(media):
+        logging.info("Handling likes for media %s", media.shortcode)
+        if self.action_manager.is_action_allowed_now("like"):
+            return
+        if self.strategy_like.should_like(media):
             if self.core.like(media):
                 self.action_manager.allow_action_after_seconds('like', self.like_delay_sec)
 
     def handle_user_follow(self, user):
-        if self._can_follow() and self.strategy_follow.should_follow(user):
+        logging.info("Handling follow for user %s", user.username)
+        if self.action_manager.is_action_allowed_now("follow") and self.strategy_follow.should_follow(user):
             if self.core.follow(user):
                 self.action_manager.allow_action_after_seconds('follow', self.follow_delay_sec)
 
     def try_unfollow_someone(self):
-        if self._can_unfollow():
+        logging.info("Checkin if we can unfollow someone.")
+        if self.action_manager.is_action_allowed_now("unfollow"):
             followed_users = self.repository_bot.find_followed_users()
             for user in followed_users:
                 if self.strategy_unfollow.should_unfollow(user):
@@ -90,6 +89,11 @@ class InstaBot:
                         break
 
     def handle_recent_media(self, medias):
+        """
+        :param medias:
+        :type medias: list of instabotpatrik.model.InstagramMedia
+        :return:
+        """
         logging.info("[INSTABOT] Handling recent media for tag %s. Media count: %d", self.current_tag, len(medias))
         logging.info("[INSTABOT] Recent media shortcodes: %s", [media.shortcode for media in medias])
         for media in medias:
@@ -97,7 +101,7 @@ class InstaBot:
             owner = self.core.get_media_owner(media)
             if owner is None:
                 logging.warning("[INSTABOT] Couldn't get details about media owner.")
-            elif owner.detail.we_follow is False:
+            elif owner.detail.we_follow_user is False:
                 self.handle_user_follow(owner)
 
             if self._stopped:
@@ -105,8 +109,9 @@ class InstaBot:
             self.wait_until_some_action_possible()
 
     def wait_until_some_action_possible(self):
-        sleep_sec = self.action_manager.time_left_until_some_action_possible()
-        instabotpatrik.tools.go_sleep(duration_sec=sleep_sec + 3, plusminus=3)
+        info = self.action_manager.time_left_until_some_action_possible()
+        logging.info("Next possible action will be %s in %d seconds", info['action_name'], info['sec_left'])
+        instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 3, plusminus=3)
 
     def run(self):
         logging.info("Starting bot with following configuration:")
