@@ -3,125 +3,111 @@
 import datetime
 import logging
 import instabotpatrik
+import random
 
 logging.getLogger().setLevel(20)
 logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
+# TODO : Limit cap middle layer
+# TODO: Extract fetching media out - all I need is interface: get me this many media. I don't need to care where are
+# those media coming from for now
+# TODO: Some generalized scheduler class maybe?
+
+# comment: I ideally on instabot layer I would really just say what actions/workflows I wanna do and how often I wanna
+# do them. Groovy DSL for that? Python DSL? (programmable bot, but also with UI ...aiguuuu, total killer)
+
+# TODO: annotations for scheduling... anotate method with @allowAfter(action='like', sec=300) ... and if the like was
+# succesfull, then this annotation will asure to setup action manager to allow like only after 300 seconds
 class InstaBot:
 
     def __init__(self,
                  core,
-                 instagram_client,
-                 repository_bot,
-                 repository_config,
                  strategy_tag_selection,
-                 strategy_media_scan,
-                 strategy_like,
-                 strategy_follow,
-                 strategy_unfollow):
+                 strategy_media_scan):
         """
         :param core:
         :type core: instabotpatrik.core.InstabotCore
-        :param instagram_client:
-        :type instagram_client: instabotpatrik.client.InstagramClient
-        :param repository_bot:
-        :type repository_bot: instabotpatrik.repository.BotRepositoryMongoDb
-        :param repository_config:
-        :type repository_config: instabotpatrik.strategy.ConfigRepositoryMongoDb
         :param strategy_tag_selection:
         :type strategy_tag_selection: instabotpatrik.strategy.StrategyTagSelectionBasic
         :param strategy_media_scan:
         :type strategy_media_scan: instabotpatrik.strategy.StrategyMediaScanBasic
-        :param strategy_like:
-        :type strategy_like: instabotpatrik.strategy.StrategyLikeBasic
-        :param strategy_follow:
-        :type strategy_follow: instabotpatrik.strategy.StrategyFollowBasic
-        :param strategy_unfollow:
-        :type strategy_unfollow: instabotpatrik.strategy.StrategyUnfollowBasic
         """
         self.core = core
         self.bot_start = datetime.datetime.now()
-        self.instagram_client = instagram_client
         self.strategy_tag_selection = strategy_tag_selection
         self.strategy_media_scan = strategy_media_scan
-        self.strategy_like = strategy_like
-        self.strategy_follow = strategy_follow
-        self.strategy_unfollow = strategy_unfollow
-        self.repository_bot = repository_bot
-        self.repository_config = repository_config
-        self.current_tag = None
 
-        self.like_per_day = 900
-        self.follow_per_day = 300
-        self.unfollow_per_day = 200
+        self.like_per_day_cap = 600
+        self.follow_per_day_cap = 200
+        self.unfollow_per_day_cap = 300
+        self.lfs_per_day_cap = 500  # lfs = like-follow-session
 
         self.time_in_day = 24 * 60 * 60
-        self.like_delay_sec = self.time_in_day / self.like_per_day
-        self.unfollow_delay_sec = self.time_in_day / self.unfollow_per_day
-        self.follow_delay_sec = self.time_in_day / self.follow_per_day
-        self.instagram_client.login()
-        self._stopped = False
+        self.ban_sleep_time_sec = 2 * 60 * 60  # If it seems like you'r banned - will sleep
+
+        self.lfs_delay_sec = self.time_in_day / self.lfs_per_day_cap
+        self.unfollow_delay_sec = self.time_in_day / self.unfollow_per_day_cap
+
         self.action_manager = instabotpatrik.tools.ActionManager()
+        self.unfollow_workflow = instabotpatrik.workflow.UnfollowWorkflow(self.core)
+        self.lfs_workflow = instabotpatrik.workflow.LfsWorkflow(self.core)
 
-    def handle_media_like(self, media):
-        logging.info("Handling likes for media %s", media.shortcode)
-        if self.action_manager.is_action_allowed_now("like"):
-            return
-        if self.strategy_like.should_like(media):
-            if self.core.like(media):
-                self.action_manager.allow_action_after_seconds('like', self.like_delay_sec)
+        self.current_tag = None
+        self._stopped = False
 
-    def handle_user_follow(self, user):
-        logging.info("Handling follow for user %s", user.username)
-        if self.action_manager.is_action_allowed_now("follow") and self.strategy_follow.should_follow(user):
-            if self.core.follow(user):
-                self.action_manager.allow_action_after_seconds('follow', self.follow_delay_sec)
+        # self.like_delay_sec = self.time_in_day / self.like_per_day_cap    part of LFS
+        # self.follow_delay_sec = self.time_in_day / self.follow_per_day_cap  part of LFS
 
-    def try_unfollow_someone(self):
-        logging.info("Checkin if we can unfollow someone.")
-        if self.action_manager.is_action_allowed_now("unfollow"):
-            followed_users = self.repository_bot.find_followed_users()
-            for user in followed_users:
-                if self.strategy_unfollow.should_unfollow(user):
-                    if self.core.unfollow(user):
-                        self.action_manager.allow_action_after_seconds('unfollow', self.unfollow_delay_sec)
-                        break
-
-    def handle_recent_media(self, medias):
+    def schedule_and_execute_actions_for_medias(self, medias):
         """
         :param medias:
         :type medias: list of instabotpatrik.model.InstagramMedia
         :return:
         """
-        logging.info("[INSTABOT] Handling recent media for tag %s. Media count: %d", self.current_tag, len(medias))
-        logging.info("[INSTABOT] Recent media shortcodes: %s", [media.shortcode for media in medias])
-        for media in medias:
-            self.handle_media_like(media)
-            owner = self.core.get_media_owner(media)
-            if owner is None:
-                logging.warning("[INSTABOT] Couldn't get details about media owner.")
-            elif owner.detail.we_follow_user is False:
-                self.handle_user_follow(owner)
+        while len(medias) > 0 and self._stopped is False:
+            try:
+                logging.info("[INSTABOT] Handle media one by one by one: Some action should be possible now.")
 
-            if self._stopped:
-                break
-            self.wait_until_some_action_possible()
+                # ----- IF SCHEDULED: UNFOLLOW ------
+                if self.action_manager.is_action_allowed_now("unfollow"):
+                    logging.info("[INSTABOT] Going to unfollow someone.")
+                    try:
+                        self.unfollow_workflow.run()
+                    finally:
+                        self.action_manager.allow_action_after_seconds('unfollow', self.unfollow_delay_sec)
 
-    def wait_until_some_action_possible(self):
-        info = self.action_manager.time_left_until_some_action_possible()
-        logging.info("Next possible action will be %s in %d seconds", info['action_name'], info['sec_left'])
-        instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 3, plusminus=3)
+                # ----- IF SCHEDULED: LIKING SESSIONS------
+                if self.action_manager.is_action_allowed_now("liking_session"):
+                    media = medias.pop()
+                    logging.info("[INSTABOT] Going to check if we can do LFS on media %s", media.shortcode)
+                    media_owner = self.core.get_media_owner(media)  # as if we explore the user profile
+                    if self.lfs_workflow.is_approved_for_lfs(media_owner):
+                        logging.info("[INSTABOT] Starting LFS on owner of media %s", media.shortcode)
+                        try:
+                            self.lfs_workflow.run(media, media_owner)
+                        finally:
+                            self.action_manager.allow_action_after_seconds('liking_session', self.unfollow_delay_sec)
+
+                # ----- WAIT TILL NEXT ACTION------
+                info = self.action_manager.time_left_until_some_action_possible()
+                logging.info("Next possible action will be %s in %d seconds", info['action_name'], info['sec_left'])
+                instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 3, plusminus=3)
+
+            except instabotpatrik.client.InstagramResponseException as e:
+                raise e
+            except Exception as e:
+                logging.error(e, exc_info=True)
+                logging.error("Something went wrong. Will sleep 60 seconds")
+                instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=1)
 
     def run(self):
-        logging.info("Starting bot with following configuration:")
+        logging.info("[INSTABOT] Starting bot with following configuration:")
+        logging.info("[INSTABOT] Daily cap for like count:%d", self.like_per_day_cap)
+        logging.info("[INSTABOT] Daily cap for follow count:%d", self.follow_per_day_cap)
+        logging.info("[INSTABOT] Daily cap for unfollow count:%d", self.unfollow_per_day_cap)
 
-        logging.info("like_per_day:%d  -> like_delay: %d " % (self.like_per_day, self.like_delay_sec))
-        logging.info("follow_per_day:%d  -> unfollow_delay: %d " % (self.follow_per_day, self.unfollow_delay_sec))
-        logging.info("unfollow_per_day:%d  -> follow_delay: %d " % (self.unfollow_per_day, self.follow_delay_sec))
-
-        if not self.instagram_client.is_logged_in():
-            self.instagram_client.login()
+        self.core.login()
 
         while not self._stopped:
             try:
@@ -129,12 +115,26 @@ class InstaBot:
                 logging.info("[INSTABOT] Starting main loop. Selected tag: %s", self.current_tag)
 
                 medias = self.strategy_media_scan.get_media_of_other_people(self.current_tag)
-                self.handle_recent_media(medias)
-                self.try_unfollow_someone()
-                self.wait_until_some_action_possible()
+                select_ratio = 0.55
+                medias = random.sample(medias, int(len(medias) * select_ratio))
+
+                logging.info("[INSTABOT] For tag %s was picked media: %s",
+                             self.current_tag, [media.shortcode for media in medias])
+
+                self.schedule_and_execute_actions_for_medias(medias)
+
+            except instabotpatrik.client.InstagramResponseException as e:
+                logging.critical(e, exc_info=True)
+                logging.critical("Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
+                                 "Botting might had been detected. Will sleep approximately %d seconds now.",
+                                 e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
+                instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=30)
+                return False
             except Exception as e:
                 logging.error(e, exc_info=True)
-                instabotpatrik.tools.go_sleep(duration_sec=100, plusminus=15)
+                logging.error("Something went wrong. Will sleep 60 seconds")
+                instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=1)
+
         logging.info("Bot is stopped.")
 
     def stop(self):

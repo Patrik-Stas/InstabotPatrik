@@ -16,11 +16,3 @@ db.$collection_config_name.insert({
     "type":"strategy_select_random_tag",
     "tags":$tag_list
 })
-
-// liking strategy
-
-
-// follow strategy
-
-
-// unfollow strategy

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from testsUnit.context import instabotpatrik
+from testsUnit.context import testcommon
 from unittest.mock import patch
 import unittest
 import unittest.mock
+
 
 
 class InstabotCoreTestCase(unittest.TestCase):
@@ -19,7 +21,7 @@ class ItShouldNotIncludeOwnMedia(InstabotCoreTestCase):
         media = [instabotpatrik.model.InstagramMedia("id1", "code1", "owner_id1", "caption1"),
                  instabotpatrik.model.InstagramMedia("id2", "code2", "my_id", "caption2")]
         self.client_mock.get_latest_media_by_tag.return_value = media
-        self.client_mock.our_instagram_id = "my_id"
+        self.client_mock.get_our_user.return_value = instabotpatrik.model.InstagramUser(instagram_id="my_id")
         foobar_medias = self.core.get_latest_media_by_tag("foobar", include_own=False)
         self.assertEqual(1, len(foobar_medias))
         self.assertEqual("owner_id1", foobar_medias[0].owner_id)

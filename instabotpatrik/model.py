@@ -6,6 +6,11 @@ logging.getLogger().setLevel(20)
 logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 
+class InsufficientInformationException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 class InstagramUserBotHistory:
 
     def __init__(self,
@@ -42,7 +47,8 @@ class InstagramUser:
                  instagram_id,
                  bot_history=None,
                  username=None,
-                 user_detail=None):
+                 user_detail=None,
+                 recent_media=[]):
         """
 
         :type user_detail: InstagramUserDetail
@@ -52,13 +58,14 @@ class InstagramUser:
         self.username = username
         self.detail = user_detail
         self.bot_data = bot_history if bot_history is not None else InstagramUserBotHistory()
+        self.recent_media = recent_media
 
     def is_fully_known(self):  # Information available if user profile is viewed
         return self.instagram_id is not None \
                and self.username is not None \
                and self.detail is not None
 
-    def update_data(self, source_user):
+    def update_details(self, source_user):
         """
         :param source_user: source of new information
         :type source_user: InstagramUser

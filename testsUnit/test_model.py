@@ -36,7 +36,7 @@ class UserDetailTestCase(unittest.TestCase):
 class ItShouldUpdateUserDetails(UserDetailTestCase):
 
     def runTest(self):
-        self.user.update_data(self.new_version_user)
+        self.user.update_details(self.new_version_user)
 
         self.assertEqual(self.user.detail.url, self.new_version_user.detail.url)
         self.assertEqual(self.user.detail.count_shared_media, self.new_version_user.detail.count_shared_media)
@@ -48,7 +48,7 @@ class ItShouldUpdateUserDetails(UserDetailTestCase):
 class ItShouldNotMakeShallowCopyOfDetails(UserDetailTestCase):
 
     def runTest(self):
-        self.user.update_data(self.new_version_user)
+        self.user.update_details(self.new_version_user)
 
         self.assertNotEqual(self.user.detail, self.new_version_user.detail)
 
@@ -56,7 +56,7 @@ class ItShouldNotMakeShallowCopyOfDetails(UserDetailTestCase):
 class ItShouldNotModifyBotHistory(UserDetailTestCase):
 
     def runTest(self):
-        self.user.update_data(self.new_version_user)
+        self.user.update_details(self.new_version_user)
 
         self.assertEqual(self.user.bot_data.count_likes, self.original_history.count_likes)
         self.assertEqual(self.user.bot_data.last_like_timestamp, self.original_history.last_like_timestamp)

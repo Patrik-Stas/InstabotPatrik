@@ -17,14 +17,15 @@ def get_time():
 
 
 def go_sleep(duration_sec, plusminus):
-    logging.info("Going to sleep for about %d", duration_sec)
-    time.sleep(duration_sec + (plusminus * random.uniform(-1, 1)))
+    sleep_duration = duration_sec if plusminus < 0.01 else duration_sec + (plusminus * random.uniform(-1, 1))
+    logging.info("Going to sleep for %f seconds", sleep_duration)
+    time.sleep(sleep_duration)
 
 
 class ActionManager:
 
     def __init__(self):
-        self.allowed_actions = ["like", "follow", "unfollow"]
+        self.allowed_actions = ["unfollow", "liking_session"]
         self.actions_timestamps = {}
 
     def action_limit_was_registered(self, action):
@@ -37,6 +38,7 @@ class ActionManager:
                 if not allowed:
                     logging.info("Action '%s' not allowed now. Will be possible after %f seconds", action_name,
                                  self.time_left_until_action_possible(action_name))
+                return allowed
             else:
                 return True
         else:

@@ -15,7 +15,9 @@ logging.getLogger().setLevel(30)
 
 
 class ItShouldParseGetMediaByTag(unittest.TestCase):
-    def test_run(self):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_get_media_by_tag.response)
         session_mock.get.return_value = resp_mock
@@ -36,7 +38,9 @@ class ItShouldParseGetMediaByTag(unittest.TestCase):
 
 
 class ItShouldParseMediaDetail(unittest.TestCase):
-    def test_run(self):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_get_media_detail.response)
         session_mock.get.return_value = resp_mock
@@ -60,7 +64,9 @@ class ItShouldParseMediaDetail(unittest.TestCase):
 
 
 class ItShouldParseUserDetails(unittest.TestCase):
-    def test_run(self):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_get_user_detail.response)
         session_mock.get.return_value = resp_mock
@@ -84,7 +90,8 @@ class ItShouldParseUserDetails(unittest.TestCase):
 
 
 class ItShouldLikePost(unittest.TestCase):
-    def test_run(self):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_action_responses.response_like)
         session_mock.post.return_value = resp_mock
@@ -100,7 +107,8 @@ class ItShouldLikePost(unittest.TestCase):
 
 
 class ItShouldFollowUser(unittest.TestCase):
-    def test_run(self):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_action_responses.response_follow)
         session_mock.post.return_value = resp_mock
@@ -116,7 +124,8 @@ class ItShouldFollowUser(unittest.TestCase):
 
 
 class ItShouldUnfollowUser(unittest.TestCase):
-    def test_run(self):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_action_responses.response_unfollow)
         session_mock.post.return_value = resp_mock
