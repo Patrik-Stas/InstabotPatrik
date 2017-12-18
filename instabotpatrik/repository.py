@@ -1,17 +1,49 @@
 import pymongo
 import instabotpatrik
 import logging
+import dateutil.parser
+import dateutil.tz
+import pytz
 
-logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
+
+class DataIntegrityException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+def datetime_to_db_format(dt):
+    """
+    Converts timezone aware datetime into ISO8601 string in UTC (will end with '+00:00')
+    :param dt:
+    :type dt: datetime.datetime
+    :return:
+    """
+    if not dt:
+        return None
+    if dt.tzname() != "UTC":
+        dt = dt.astimezone(pytz.UTC)
+    return dt.isoformat()
+
+
+def from_db_to_datetime(time_string):
+    """
+    Parses string as represented in database into datetime. The returned datetime is timezone aware, in UTC.
+    :param time_string:
+    :return:
+    """
+    if time_string is None:
+        return None
+    if "+00:00" not in time_string:
+        raise DataIntegrityException("Wanted to parse timestamp from database, but was from timezone other than UTC!")
+    return dateutil.parser.parse(time_string)
 
 
 def map_user_dict_to_obj(user_dict):
     bot_history = None if user_dict['bot'] is None else instabotpatrik.model.InstagramUserBotHistory(
         count_likes=user_dict['bot']['count_likes'],
-        last_like_timestamp=user_dict['bot']['last_like_timestamp'],
-        last_follow_timestamp=user_dict['bot']['last_follow_timestamp'],
-        last_unfollow_timestamp=user_dict['bot']['last_unfollow_timestamp']
+        last_like_timestamp=from_db_to_datetime(user_dict['bot']['last_like_timestamp']),
+        last_follow_timestamp=from_db_to_datetime(user_dict['bot']['last_follow_timestamp']),
+        last_unfollow_timestamp=from_db_to_datetime(user_dict['bot']['last_unfollow_timestamp'])
     )
     user_detail = None if user_dict['detail'] is None else instabotpatrik.model.InstagramUserDetail(
         url=user_dict['detail']['url'],
@@ -37,7 +69,7 @@ def map_media_dict_to_obj(media_dict):
         caption=media_dict["caption"],
         is_liked=media_dict["is_liked"],
         like_count=media_dict["like_count"],
-        time_liked=media_dict["time_liked"],
+        time_liked=from_db_to_datetime(media_dict["time_liked"]),
         owner_username=media_dict["owner_username"]
     )
 
@@ -118,22 +150,23 @@ class BotRepositoryMongoDb:
         }
         bot_update = None if user.bot_data is None else {
             "count_likes": user.bot_data.count_likes,
-            "last_like_timestamp": user.bot_data.last_like_timestamp,
-            "last_follow_timestamp": user.bot_data.last_follow_timestamp,
-            "last_unfollow_timestamp": user.bot_data.last_unfollow_timestamp
+            "last_like_timestamp": datetime_to_db_format(user.bot_data.last_like_timestamp),
+            "last_follow_timestamp": datetime_to_db_format(user.bot_data.last_follow_timestamp),
+            "last_unfollow_timestamp": datetime_to_db_format(user.bot_data.last_unfollow_timestamp)
         }
-
+        update = {
+            "$set": {
+                "instagram_id": user.instagram_id,
+                "username": user.username,
+                "detail": detail_update,
+                "bot": bot_update
+            },
+            "$currentDate": {"lastModified": True}
+        }
+        logging.debug("Going to upsert user:%s", update)
         self.users_collection.update_one(
             filter={"instagram_id": user.instagram_id},
-            update={
-                "$set": {
-                    "instagram_id": user.instagram_id,
-                    "username": user.username,
-                    "detail": detail_update,
-                    "bot": bot_update
-                },
-                "$currentDate": {"lastModified": True}
-            },
+            update=update,
             upsert=True
         )
 
@@ -178,7 +211,7 @@ class BotRepositoryMongoDb:
                     "caption": media.caption,
                     "is_liked": media.is_liked,
                     "like_count": media.like_count,
-                    "time_liked": media.time_liked,
+                    "time_liked": datetime_to_db_format(media.time_liked),
                     "owner_username": media.owner_username
                 },
                 "$currentDate": {"lastModified": True}

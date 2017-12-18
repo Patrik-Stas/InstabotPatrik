@@ -12,9 +12,6 @@ import instabotpatrik
 if 'threading' in sys.modules:
     del sys.modules['threading']
 
-logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
-
 
 class InstagramResponseException(Exception):
     def __init__(self, request_type, request_address, return_code):
@@ -102,8 +99,10 @@ class InstagramClient:
         # self.pretty_print(prepared_request)
         # r = self.s.send(prepared_request)
         # logging.info("[CLIENT] Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
+        logging.info("Going to send [%s] %s", method_type, url)
         r = callable(url)  # TODO figure out how to log request headers, if I use method above, mocking in tests is hard
         if 200 <= r.status_code < 300:
+            logging.info("Response seems good. Response status code: %d", r.status_code)
             parsed_response = None
             if r.text is not None:
                 parsed_response = json.loads(r.text)
@@ -111,7 +110,8 @@ class InstagramClient:
                               json.dumps(parsed_response, indent=4))
             return parsed_response
         else:
-            raise InstagramResponseException("%s", url, r.status_code)
+            logging.error("Instagram doesn't like us. Response status code %d", r.status_code)
+            raise InstagramResponseException(method_type, url, r.status_code)
 
     def post_request(self, url):
         return self.make_request(url, "POST", self.s.post)

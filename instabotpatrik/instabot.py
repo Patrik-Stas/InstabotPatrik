@@ -5,9 +5,6 @@ import logging
 import instabotpatrik
 import random
 
-logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
-
 
 # TODO : Limit cap middle layer
 # TODO: Extract fetching media out - all I need is interface: get me this many media. I don't need to care where are
@@ -90,7 +87,7 @@ class InstaBot:
                             self.action_manager.allow_action_after_seconds('liking_session', self.unfollow_delay_sec)
 
                 # ----- WAIT TILL NEXT ACTION------
-                info = self.action_manager.time_left_until_some_action_possible()
+                info = self.action_manager.seconds_left_until_some_action_possible()
                 logging.info("Next possible action will be %s in %d seconds", info['action_name'], info['sec_left'])
                 instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 3, plusminus=3)
 

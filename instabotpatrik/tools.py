@@ -1,9 +1,8 @@
-import time
 import random
 import logging
-
-logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
+import pytz
+import datetime
+import time
 
 
 class UnknownActionException:
@@ -12,8 +11,13 @@ class UnknownActionException:
         # TODO: Pass the message to the exception text or smtng
 
 
-def get_time():
-    return time.time()
+def get_utc_datetime():
+    """
+    :rtype datetime.datetime
+    :return:
+    """
+    return datetime.datetime.now(tz=pytz.UTC)
+
 
 
 def go_sleep(duration_sec, plusminus):
@@ -34,10 +38,10 @@ class ActionManager:
     def is_action_allowed_now(self, action_name):
         if action_name in self.allowed_actions:
             if action_name in self.actions_timestamps.keys():
-                allowed = time.time() >= self.actions_timestamps[action_name]
+                allowed = get_utc_datetime() >= self.actions_timestamps[action_name]
                 if not allowed:
                     logging.info("Action '%s' not allowed now. Will be possible after %f seconds", action_name,
-                                 self.time_left_until_action_possible(action_name))
+                                 self.seconds_left_until_action_possible(action_name))
                 return allowed
             else:
                 return True
@@ -46,28 +50,28 @@ class ActionManager:
 
     def allow_action_after_seconds(self, action_name, seconds):
         if action_name in self.allowed_actions:
-            self.actions_timestamps[action_name] = time.time() + seconds
+            self.actions_timestamps[action_name] = get_utc_datetime() + datetime.timedelta(seconds=seconds)
         else:
             raise UnknownActionException(action_name)
 
-    def time_left_until_action_possible(self, action_name):
+    def seconds_left_until_action_possible(self, action_name):
         if action_name in self.allowed_actions:
             if not self.action_limit_was_registered(action_name):
                 return 0
             else:
-                left_seconds = self.actions_timestamps[action_name] - time.time()
+                left_seconds = (self.actions_timestamps[action_name] - get_utc_datetime()).seconds
                 return 0 if 0 >= left_seconds else left_seconds
         else:
             raise UnknownActionException(action_name)
 
-    def time_left_until_some_action_possible(self):
+    def seconds_left_until_some_action_possible(self):
         if len(self.actions_timestamps.keys()) == 0:
             return {"sec_left": 0, "action_name": None}
 
         min_sec_left = 1000000.0
         min_action_name = None
         for action_name, timestamp in self.actions_timestamps.items():
-            action_sec_left = self.time_left_until_action_possible(action_name)
+            action_sec_left = self.seconds_left_until_action_possible(action_name)
             if action_sec_left < min_sec_left:
                 min_sec_left = action_sec_left
                 min_action_name = action_name

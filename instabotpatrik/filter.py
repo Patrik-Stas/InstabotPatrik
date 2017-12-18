@@ -2,9 +2,8 @@ import logging
 import time
 import instabotpatrik
 
-logging.getLogger().setLevel(20)  # INFO+
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
+# TODO: refactor like/follow/unfollow delay filters -> Can be single dictionary based class
 
 def _check_if_user_is_fully_known(user):
     if not user.is_fully_known():
@@ -123,14 +122,21 @@ class LastUnfollowFilter:
         if user.bot_data.last_unfollow_timestamp is None:
             return True
         else:
-            return time.time() - user.bot_data.last_unfollow_timestamp > self.minimal_delay_sec
+            return self._get_seconds_passed(user) > self.minimal_delay_sec
+
+    @staticmethod
+    def _get_seconds_passed(user):
+        now = instabotpatrik.tools.get_utc_datetime()
+        ts = user.bot_data.last_unfollow_timestamp
+        r = now - ts
+        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.last_unfollow_timestamp).seconds
 
     def get_filter_result_as_string(self, user):
         if user.bot_data.last_unfollow_timestamp is None:
             return "There's no unfollow timestmap record."
         else:
-            delay_delta = time.time() - user.bot_data.last_unfollow_timestamp
-            return "Time passed since last unfollow %f. Minimal delay is %f." % (delay_delta, self.minimal_delay_sec)
+            return "Time passed since last unfollow %f. Minimal delay is %f." % (
+            self._get_seconds_passed(user), self.minimal_delay_sec)
 
 
 class LastFollowFilter:
@@ -147,20 +153,24 @@ class LastFollowFilter:
         if user.bot_data.last_follow_timestamp is None:
             return True
         else:
-            return time.time() - user.bot_data.last_follow_timestamp > self.minimal_delay_sec
+            return self._get_seconds_passed(user) > self.minimal_delay_sec
+
+    @staticmethod
+    def _get_seconds_passed(user):
+        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.last_follow_timestamp).seconds
 
     def get_filter_result_as_string(self, user):
         if user.bot_data.last_follow_timestamp is None:
             return "There's no follow timestmap record."
         else:
-            delay_delta = time.time() - user.bot_data.last_follow_timestamp
-            return "Time passed since last follow %f. Minimal delay is %f." % (delay_delta, self.minimal_delay_sec)
+            return "Time passed since last follow %f. Minimal delay is %f." % (
+                self._get_seconds_passed(user), self.minimal_delay_sec)
 
 
 class LastLikeFilter:
     def __init__(self, more_than_hours_ago):
         super().__init__()
-        self.minimal_delay_sec = 60 * 60 * more_than_hours_ago
+        self.threshold_sec = 60 * 60 * more_than_hours_ago
 
     @log_filter_result
     def passes(self, user):
@@ -172,11 +182,15 @@ class LastLikeFilter:
         if user.bot_data.last_like_timestamp is None:
             return True
         else:
-            return time.time() - user.bot_data.last_like_timestamp > self.minimal_delay_sec
+            return self._get_seconds_passed(user) > self.threshold_sec
+
+    @staticmethod
+    def _get_seconds_passed(user):
+        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.last_like_timestamp).seconds
 
     def get_filter_result_as_string(self, user):
         if user.bot_data.last_like_timestamp is None:
             return "There's no like timestmap record."
         else:
-            delay_delta = time.time() - user.bot_data.last_like_timestamp
-            return "Time passed since last like %f. Minimal delay is %f." % (delay_delta, self.minimal_delay_sec)
+            return "Time passed since last like %f. Minimal delay is %f." % (
+                self._get_seconds_passed(user), self.threshold_sec)

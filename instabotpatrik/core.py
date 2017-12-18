@@ -1,8 +1,6 @@
 import logging
 import instabotpatrik
 
-logging.getLogger().setLevel(20)  # INFO+
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 # TODO: rerun tests for timestamp filters, seem like even the tests had wrong verifications.
 
@@ -65,6 +63,15 @@ class InstabotCore:
 
         return was_liked
 
+    # def get_user_by_username(self, username):
+    #     # TODO : need to do this and use it in follow. Core methods should not require business objects as parameters.
+        # Because then it would need to handle whether it can save that object after some changes ar made. But what if that
+        # insstance of that object is outdated, compared with what's in the database?
+        # Let's assume that people are working with core's interface. It provides information about data at particular moment
+        # but it doesn't accept those objects to make modifications on them. The modifications or taking actions against
+        # some objects is possible only by providing identifier of that particlar object. Then it's responsibility of
+        # core to resolved this data - check database, if it's not there -> call API and store the object.
+
     def follow(self, user):
         """
         :param user:
@@ -72,7 +79,8 @@ class InstabotCore:
         :return: True if giving follow was successfull
         :rtype: bool
         """
-        logging.info("[CORE] Want to follow. Username:%s id:%s", user.username, user.instagram_id)
+
+        logging.info("[CORE] Want to follow. Username:%s", user.username)
         if user.detail.we_follow_user:
             logging.info("[CORE] UserID:%s Username:%s is already being followed. Skip this attempt to follow.",
                          user.instagram_id, user.username)

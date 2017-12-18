@@ -2,9 +2,6 @@ import instabotpatrik
 from copy import deepcopy
 import logging
 
-logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
-
 
 class InsufficientInformationException(Exception):
     def __init__(self, message):
@@ -18,6 +15,16 @@ class InstagramUserBotHistory:
                  last_like_timestamp=None,
                  last_follow_timestamp=None,
                  last_unfollow_timestamp=None):
+        """
+        :param count_likes:
+        :type count_likes: int
+        :param last_like_timestamp:
+        :type last_like_timestamp: datetime.datetime
+        :param last_follow_timestamp:
+        :type last_follow_timestamp: datetime.datetime
+        :param last_unfollow_timestamp:
+        :type last_unfollow_timestamp: datetime.datetime
+        """
         self.count_likes = count_likes
         self.last_like_timestamp = last_like_timestamp
         self.last_follow_timestamp = last_follow_timestamp
@@ -78,19 +85,23 @@ class InstagramUser:
         self.detail = deepcopy(source_user.detail)
 
     def register_follow(self):
-        self.bot_data.last_follow_timestamp = instabotpatrik.tools.get_time()
+        self.bot_data.last_follow_timestamp = instabotpatrik.tools.get_utc_datetime()
         self.detail.we_follow_user = True
+        logging.debug("Registered follow user_id:%s username:%s.")
 
     def register_unfollow(self):
-        self.bot_data.last_unfollow_timestamp = instabotpatrik.tools.get_time()
+        self.bot_data.last_unfollow_timestamp = instabotpatrik.tools.get_utc_datetime()
         self.detail.we_follow_user = False
+        logging.debug("Registered unfollow user_id:%s username:%s")
 
     def register_like(self):
-        self.bot_data.last_like_timestamp = instabotpatrik.tools.get_time()
+        self.bot_data.last_like_timestamp = instabotpatrik.tools.get_utc_datetime()
         if self.bot_data.count_likes is None:
             self.bot_data.count_likes = 1
         else:
             self.bot_data.count_likes += 1
+        logging.debug("Registered like for user_id:%s username:%s. He has now %d likes",
+                      self.instagram_id, self.username, self.bot_data.count_likes)
 
 
 class InstagramMedia:
@@ -113,5 +124,5 @@ class InstagramMedia:
         self.owner_username = owner_username
 
     def add_like(self):
-        self.time_liked = instabotpatrik.tools.get_time()
+        self.time_liked = instabotpatrik.tools.get_utc_datetime()
         self.is_liked = True

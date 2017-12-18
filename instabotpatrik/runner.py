@@ -6,9 +6,6 @@ import pymongo
 import instabotpatrik
 import logging
 
-logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
-
 
 class BasicSetup:
     def __init__(self, cfg, api_client=None):

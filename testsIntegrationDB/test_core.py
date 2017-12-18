@@ -4,7 +4,8 @@ import unittest
 import unittest.mock
 import pymongo
 from testsIntegrationDB import common
-import time
+import datetime
+import pytz
 
 logging.getLogger().setLevel(30)
 
@@ -79,8 +80,8 @@ class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCas
         )
         self.client_mock.like.return_value = True
         self.repo_bot.update_user(owner)
-        like_time = time.time()
-        mock_tools.get_time.return_value = like_time
+        like_time = datetime.datetime.now(pytz.UTC)
+        mock_tools.get_utc_datetime.return_value = like_time
 
         self.core.like(media1)
 

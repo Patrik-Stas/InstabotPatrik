@@ -10,6 +10,8 @@ import logging
 import subprocess
 import requests
 
+logging.getLogger().setLevel(20)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
 
 class ItShouldLoginAndGetMedia(unittest.TestCase):
     @staticmethod
@@ -49,7 +51,7 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
         self.config = common.get_config()
         self.mongo_client = pymongo.MongoClient(self.config.get_db_host(), self.config.get_db_port())
 
-        # self.drop_e2e_database() # Decide if you want to start over or continue ...
+        self.drop_e2e_database() # Decide if you want to start over or continue ...
         self.init_e2e_database()
 
     def runTest(self):

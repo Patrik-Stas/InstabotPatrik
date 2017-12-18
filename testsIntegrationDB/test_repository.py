@@ -6,8 +6,9 @@ import unittest
 import pymongo
 import instabotpatrik.repository
 import instabotpatrik.model
-import time
+import datetime
 from testsIntegrationDB import common
+import pytz
 
 logging.getLogger().setLevel(30)
 
@@ -49,7 +50,7 @@ class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
         self.assertEqual(user1_loaded.bot_data.last_follow_timestamp, None)
         self.assertEqual(user1_loaded.bot_data.last_unfollow_timestamp, None)
 
-        like_timestamp = time.time()
+        like_timestamp = datetime.datetime.now(pytz.UTC)
         user1_loaded.detail.count_followed_by = 12321
         user1_loaded.detail.user_follows_us = False
         user1_loaded.bot_data.last_like_timestamp = like_timestamp
@@ -84,7 +85,7 @@ class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):
             like_count=987,
             owner_username="user12",
             is_liked=False,
-            time_liked=time.time()
+            time_liked=datetime.datetime.now(pytz.UTC)
         )
         self.repository.update_media(media1)
         media1_loaded = self.repository.find_media_by_id(instagram_id)

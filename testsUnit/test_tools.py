@@ -21,8 +21,14 @@ class ItShoulNotdAllowActionBeforeTimePasses(unittest.TestCase):
 class ItShouldCalculateMinimalWaitingTime(unittest.TestCase):
     def runTest(self):
         manager = instabotpatrik.tools.ActionManager()
-        manager.allow_action_after_seconds("liking_session", 3)
-        manager.allow_action_after_seconds("unfollow", 4)
-        time.sleep(1)
-        self.assertAlmostEqual(2, manager.time_left_until_some_action_possible()['sec_left'], delta=0.1)
-        self.assertEqual("liking_session", manager.time_left_until_some_action_possible()['action_name'])
+        manager.allow_action_after_seconds("liking_session", 10)
+        manager.allow_action_after_seconds("unfollow", 20)
+        time.sleep(0.8)
+        self.assertEqual("liking_session", manager.seconds_left_until_some_action_possible()['action_name'])
+        self.assertAlmostEqual(9, manager.seconds_left_until_some_action_possible()['sec_left'], delta=0.1)
+
+
+class ItShouldReturnTimezoneAwareUTCDateTime(unittest.TestCase):
+    def runTest(self):
+        dt = instabotpatrik.tools.get_utc_datetime()
+        self.assertEqual(dt.tzname(), "UTC")
