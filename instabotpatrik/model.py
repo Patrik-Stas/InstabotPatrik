@@ -63,14 +63,30 @@ class InstagramUser:
         """
         self.instagram_id = instagram_id
         self.username = username
-        self.detail = user_detail
-        self.bot_data = bot_history if bot_history is not None else InstagramUserBotHistory()
+        self._detail = user_detail
+        self._bot_data = bot_history if bot_history is not None else InstagramUserBotHistory()
         self.recent_media = recent_media
+
+    @property
+    def detail(self):
+        """
+        :return:
+        :rtype: InstagramUserDetail
+        """
+        return self._detail
+
+    @property
+    def bot_data(self):
+        """
+        :return:
+        :rtype: InstagramUserBotHistory
+        """
+        return self._bot_data
 
     def is_fully_known(self):  # Information available if user profile is viewed
         return self.instagram_id is not None \
                and self.username is not None \
-               and self.detail is not None
+               and self._detail is not None
 
     def update_details(self, source_user):
         """
@@ -82,24 +98,24 @@ class InstagramUser:
                 raise Exception("updating information on user(%s) from user with different ID(%s) doesnt. make sense.",
                                 self.instagram_id, source_user.instagram_id)
         self.username = source_user.username
-        self.detail = deepcopy(source_user.detail)
+        self._detail = deepcopy(source_user._detail)
 
     def register_follow(self):
-        self.bot_data.last_follow_timestamp = instabotpatrik.tools.get_utc_datetime()
-        self.detail.we_follow_user = True
+        self._bot_data.last_follow_timestamp = instabotpatrik.tools.get_utc_datetime()
+        self._detail.we_follow_user = True
         logging.debug("Registered follow user_id:%s username:%s.")
 
     def register_unfollow(self):
-        self.bot_data.last_unfollow_timestamp = instabotpatrik.tools.get_utc_datetime()
-        self.detail.we_follow_user = False
+        self._bot_data.last_unfollow_timestamp = instabotpatrik.tools.get_utc_datetime()
+        self._detail.we_follow_user = False
         logging.debug("Registered unfollow user_id:%s username:%s")
 
     def register_like(self):
-        self.bot_data.last_like_timestamp = instabotpatrik.tools.get_utc_datetime()
+        self._bot_data.last_like_timestamp = instabotpatrik.tools.get_utc_datetime()
         if self.bot_data.count_likes is None:
-            self.bot_data.count_likes = 1
+            self._bot_data.count_likes = 1
         else:
-            self.bot_data.count_likes += 1
+            self._bot_data.count_likes += 1
         logging.debug("Registered like for user_id:%s username:%s. He has now %d likes",
                       self.instagram_id, self.username, self.bot_data.count_likes)
 
@@ -114,15 +130,47 @@ class InstagramMedia:
                  owner_username=None,
                  is_liked=None,
                  time_liked=None):
-        self.instagram_id = instagram_id
-        self.shortcode = shortcode
-        self.owner_id = owner_id
-        self.caption = caption
-        self.is_liked = is_liked
-        self.like_count = like_count
-        self.time_liked = time_liked
-        self.owner_username = owner_username
+        self._instagram_id = instagram_id
+        self._shortcode = shortcode
+        self._owner_id = owner_id
+        self._caption = caption
+        self._is_liked = is_liked
+        self._like_count = like_count
+        self._time_liked = time_liked
+        self._owner_username = owner_username
+
+    @property
+    def instagram_id(self):
+        return self._instagram_id
+
+    @property
+    def shortcode(self):
+        return self._shortcode
+
+    @property
+    def owner_id(self):
+        return self._owner_id
+
+    @property
+    def caption(self):
+        return self._caption
+
+    @property
+    def is_liked(self):
+        return self._is_liked
+
+    @property
+    def like_count(self):
+        return self._like_count
+
+    @property
+    def time_liked(self):
+        return self._time_liked
+
+    @property
+    def owner_username(self):
+        return self._owner_username
 
     def add_like(self):
-        self.time_liked = instabotpatrik.tools.get_utc_datetime()
-        self.is_liked = True
+        self._time_liked = instabotpatrik.tools.get_utc_datetime()
+        self._is_liked = True

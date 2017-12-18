@@ -9,6 +9,7 @@ import instabotpatrik.model
 import datetime
 from testsIntegrationDB import common
 import pytz
+import freezegun
 
 logging.getLogger().setLevel(30)
 
@@ -75,6 +76,8 @@ class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
 
 
 class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):
+
+    @freezegun.freeze_time("2012-10-12 13:00:00", tz_offset=0)
     def test_run(self):
         instagram_id = "nn213b1jkbjk"
         media1 = instabotpatrik.model.InstagramMedia(
@@ -85,7 +88,7 @@ class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):
             like_count=987,
             owner_username="user12",
             is_liked=False,
-            time_liked=datetime.datetime.now(pytz.UTC)
+            time_liked=None
         )
         self.repository.update_media(media1)
         media1_loaded = self.repository.find_media_by_id(instagram_id)
@@ -99,19 +102,17 @@ class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):
         self.assertEqual(media1_loaded.time_liked, media1.time_liked)
         self.assertEqual(media1_loaded.owner_username, media1.owner_username)
 
-        media1_loaded.is_liked = True
-        media1_loaded.caption = "changedcaption"
-
+        media1_loaded.add_like()
         self.repository.update_media(media1_loaded)
         media1_loaded2 = self.repository.find_media_by_id(instagram_id)
 
         self.assertEqual(media1_loaded2.instagram_id, media1.instagram_id)
         self.assertEqual(media1_loaded2.shortcode, media1.shortcode)
         self.assertEqual(media1_loaded2.owner_id, media1.owner_id)
-        self.assertEqual(media1_loaded2.caption, "changedcaption")
+        self.assertEqual(media1_loaded2.caption, media1.caption)
         self.assertEqual(media1_loaded2.is_liked, True)
         self.assertEqual(media1_loaded2.like_count, media1.like_count)
-        self.assertEqual(media1_loaded2.time_liked, media1.time_liked)
+        self.assertEqual(media1_loaded2.time_liked, datetime.datetime(2012, 10, 12, 13, 0, 0, tzinfo=pytz.UTC))
         self.assertEqual(media1_loaded2.owner_username, media1.owner_username)
 
 

@@ -81,7 +81,7 @@ class InstabotCore:
         """
 
         logging.info("[CORE] Want to follow. Username:%s", user.username)
-        if user.detail.we_follow_user:
+        if user._detail.we_follow_user:
             logging.info("[CORE] UserID:%s Username:%s is already being followed. Skip this attempt to follow.",
                          user.instagram_id, user.username)
             return True
@@ -104,7 +104,7 @@ class InstabotCore:
         :rtype: bool
         """
         logging.info("[CORE] Want to unfollow. Username:%s id:%s", user.username, user.instagram_id)
-        if not user.detail.we_follow_user:
+        if not user._detail.we_follow_user:
             logging.info("[CORE] UserID:%s Username:%s is not followed anyway. Skip this attempt to unfollow.",
                          user.instagram_id, user.username)
             return True
@@ -140,6 +140,9 @@ class InstabotCore:
             user.username = media.owner_username
             self.refresh_user_data(user)
         return user
+
+    def get_user_by_id(self, instagram_id):
+        return self.repository.find_user(instagram_id=instagram_id)
 
     def refresh_user_data(self, user):
         """

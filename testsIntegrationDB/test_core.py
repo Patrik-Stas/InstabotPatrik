@@ -1,4 +1,5 @@
 from testsUnit.context import instabotpatrik
+from testsUnit.context import testcommon
 import logging
 import unittest
 import unittest.mock
@@ -6,6 +7,7 @@ import pymongo
 from testsIntegrationDB import common
 import datetime
 import pytz
+import freezegun
 
 logging.getLogger().setLevel(30)
 
@@ -44,6 +46,36 @@ class ItShouldUpdateMediaInDBIfLiked(CoreDBInteractionsTestCase):
         self.assertEqual("nn213b1jkbjk", media_loaded.instagram_id)
         self.assertEqual("foobar42", media_loaded.shortcode)
         self.assertTrue(media_loaded.is_liked)
+
+
+class ItShouldCorrectlyTrackNumberOfLikedMediasOfUser(CoreDBInteractionsTestCase):
+    def runTest(self):
+        media1 = instabotpatrik.model.InstagramMedia(
+            instagram_id="mediaid1",
+            shortcode="shortcode1",
+            owner_id="owner_id1",
+            caption="#foo"
+        )
+        media2 = instabotpatrik.model.InstagramMedia(
+            instagram_id="mediaid2",
+            shortcode="shortcode2",
+            owner_id="owner_id1",
+            caption="#foo"
+        )
+        # owner = instabotpatrik.model.InstagramUser(
+        #     instagram_id="owner_id1",
+        #     username="username1"
+        # )
+
+        self.core.like(media1)
+        user_load1 = self.core.get_user_by_id("owner_id1")
+        self.assertEqual(user_load1.bot_data.count_likes, 1)
+
+        self.core.like(media2)
+        self.core.like(media2)
+
+        user_load2 = self.core.get_user_by_id("owner_id1")
+        self.assertEqual(user_load2.bot_data.count_likes, 2)
 
 
 class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCase):
@@ -148,7 +180,7 @@ def get_sample_user(*args, **kwargs):
         user_follows_us=False
     )
     user = instabotpatrik.model.InstagramUser(
-        instagram_id="user1337",
+        instagram_id="userid1337",
         username="username1337",
         user_detail=detail
     )
@@ -164,16 +196,16 @@ class ItShouldUpdateDbWhenNewUserInformationAvailable(CoreDBInteractionsTestCase
             last_follow_timestamp=None,
             last_unfollow_timestamp=None
         )
-        self.repo_bot.update_user(instabotpatrik.model.InstagramUser("user1337", bot_history=bot_data))
-        media_mock = instabotpatrik.model.InstagramMedia("media123", "code123", "user1337", "#caption")
-        # media_mock.owner_id.return_value = "user1337"
+        self.repo_bot.update_user(instabotpatrik.model.InstagramUser("userid1337", bot_history=bot_data))
+        media_mock = instabotpatrik.model.InstagramMedia("media123", "code123", "userid1337", "#caption")
+        # media_mock.owner_id.return_value = "userid1337"
         self.client_mock.get_user_with_details.side_effect = get_sample_user
 
         # exercise
         user = self.core.get_media_owner(media_mock)
 
         # verify
-        db_user = self.repo_bot.find_user("user1337")
+        db_user = self.repo_bot.find_user("userid1337")
         self.assertEqual(user.instagram_id, db_user.instagram_id)
         self.assertEqual(user.username, db_user.username)
         self.assertEqual(user.detail.url, db_user.detail.url)
@@ -186,3 +218,45 @@ class ItShouldUpdateDbWhenNewUserInformationAvailable(CoreDBInteractionsTestCase
         self.assertEqual(user.bot_data.last_like_timestamp, db_user.bot_data.last_like_timestamp)
         self.assertEqual(user.bot_data.last_follow_timestamp, db_user.bot_data.last_follow_timestamp)
         self.assertEqual(user.bot_data.last_unfollow_timestamp, db_user.bot_data.last_unfollow_timestamp)
+
+
+class ItShouldCorrectlyPersistUserDataInDb(CoreDBInteractionsTestCase):
+
+    # TODO: this is failing, we need to adjust core to avoid situations like this, maybe not expose User/Media objects
+    #       or / as far as they are not publicly modifiable (from instabot, workflows ...), we could return them
+    #       but limit input interface of core to bare minimum (strings - ids/username..)
+    @freezegun.freeze_time("2012-10-01 02:00:00", tz_offset=0)
+    def runTest(self):
+        # prepare
+        bot_data = instabotpatrik.model.InstagramUserBotHistory(
+            count_likes=10,
+            last_like_timestamp=None,
+            last_follow_timestamp=None,
+            last_unfollow_timestamp=None
+        )
+        instabotpatrik.model.InstagramUser("userid1337", bot_history=bot_data, username="username1337")
+        # self.repo_bot.update_user(instabotpatrik.model.InstagramUser("userid1337", bot_history=bot_data))
+        media_mock = instabotpatrik.model.InstagramMedia("media_id123", "code123", "userid1337", "#caption")
+        # media_mock.owner_id.return_value = "userid1337"
+        self.client_mock.get_user_with_details.side_effect = get_sample_user
+
+        # exercise
+        user = self.core.get_media_owner(media_mock)  # this version of user doesn't have any bot histroy timestamps
+        self.core.like(media_mock)  # now last like timestamp should be updated on user
+        self.core.follow(user)  # now follow timestamp should be added
+
+        # verify
+        db_user = self.repo_bot.find_user("userid1337")
+        self.assertEqual("userid1337", db_user.instagram_id)
+        self.assertEqual(user.instagram_id, db_user.instagram_id)
+        self.assertEqual(user.username, db_user.username)
+        self.assertEqual(user.detail.url, db_user.detail.url)
+        self.assertEqual(user.detail.count_shared_media, db_user.detail.count_shared_media)
+        self.assertEqual(user.detail.count_follows, db_user.detail.count_follows)
+        self.assertEqual(user.detail.count_followed_by, db_user.detail.count_followed_by)
+        self.assertEqual(user.detail.we_follow_user, db_user.detail.we_follow_user)
+        self.assertEqual(user.detail.user_follows_us, db_user.detail.user_follows_us)
+        self.assertEqual(datetime.datetime(2012, 10, 1, 2, 0, 0, tzinfo=pytz.UTC), db_user.bot_data.last_like_timestamp)
+        self.assertEqual(datetime.datetime(2012, 10, 1, 2, 0, 0, tzinfo=pytz.UTC),
+                         db_user.bot_data.last_follow_timestamp)
+        self.assertEqual(user.bot_data.count_likes, db_user.bot_data.count_likes)

@@ -12,7 +12,14 @@ logging.getLogger().setLevel(30)
 class UserFilterTest(unittest.TestCase):
     def setUp(self):
         detail1 = testcommon.factory.create_user_detail(count_follows=11, count_followed_by=22, count_shared_media=33)
-        self.user1 = instabotpatrik.model.InstagramUser(instagram_id="a", username="A", user_detail=detail1)
+        history1 = testcommon.factory.create_bot_data(
+            last_like_timestamp=datetime.datetime(year=2012, month=10, day=10, hour=10, tzinfo=pytz.UTC),
+            last_follow_timestamp=datetime.datetime(year=2014, month=10, day=10, hour=10, tzinfo=pytz.UTC),
+            last_unfollow_timestamp=datetime.datetime(year=2016, month=10, day=10, hour=10, tzinfo=pytz.UTC))
+        self.user1 = instabotpatrik.model.InstagramUser(instagram_id="a",
+                                                        username="A",
+                                                        user_detail=detail1,
+                                                        bot_history=history1)
 
 
 class UserShouldPassFollowsCountFilter(UserFilterTest):
@@ -47,59 +54,47 @@ class UserShouldFailIsFollowedByMoreThanRange(UserFilterTest):
 
 class UserShouldPassLikeTimestampAboveLimit(UserFilterTest):
 
-    @freezegun.freeze_time("2012-10-01 08:00:00", tz_offset=0)
+    @freezegun.freeze_time("2012-10-12 13:00:00", tz_offset=0)
     def runTest(self):
         like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=2)
-        self.user1.bot_data = testcommon.factory.create_bot_data(
-            last_like_timestamp=datetime.datetime(year=2012, month=10, day=1, hour=1, tzinfo=pytz.UTC))
         self.assertTrue(like_filter.passes(self.user1))
 
 
 class UserShouldNotPassLikeTimestampBelowLimit(UserFilterTest):
 
-    @freezegun.freeze_time("2012-10-01 02:00:00", tz_offset=0)
+    @freezegun.freeze_time("2012-10-12 13:00:00", tz_offset=0)
     def runTest(self):
-        like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=2)
-        self.user1.bot_data = testcommon.factory.create_bot_data(
-            last_like_timestamp=datetime.datetime(year=2012, month=10, day=1, hour=1, tzinfo=pytz.UTC))
+        like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=4)
         self.assertFalse(like_filter.passes(self.user1))
 
 
 class UserShouldPassFollowTimestampAboveLimit(UserFilterTest):
 
-    @freezegun.freeze_time("2012-10-01 08:00:00", tz_offset=0)
+    @freezegun.freeze_time("2014-10-12 13:00:00", tz_offset=0)
     def runTest(self):
         follows_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=2)
-        self.user1.bot_data = testcommon.factory.create_bot_data(
-            last_follow_timestamp=datetime.datetime(year=2012, month=10, day=1, hour=1, tzinfo=pytz.UTC))
         self.assertTrue(follows_filter.passes(self.user1))
 
 
 class UserShouldNotPassFollowTimestampBelowLimit(UserFilterTest):
 
-    @freezegun.freeze_time("2012-10-01 02:00:00", tz_offset=0)
+    @freezegun.freeze_time("2014-10-12 13:00:00", tz_offset=0)
     def runTest(self):
-        follows_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=2)
-        self.user1.bot_data = testcommon.factory.create_bot_data(
-            last_follow_timestamp=datetime.datetime(year=2012, month=10, day=1, hour=1, tzinfo=pytz.UTC))
+        follows_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=4)
         self.assertFalse(follows_filter.passes(self.user1))
 
 
 class UserShouldPassUnfollowTimestampAboveLimit(UserFilterTest):
 
-    @freezegun.freeze_time("2012-10-01 08:00:00", tz_offset=0)
+    @freezegun.freeze_time("2016-10-12 13:00:00", tz_offset=0)
     def runTest(self):
         unfollows_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=2)
-        self.user1.bot_data = testcommon.factory.create_bot_data(
-            last_unfollow_timestamp=datetime.datetime(year=2012, month=10, day=1, hour=1, tzinfo=pytz.UTC))
         self.assertTrue(unfollows_filter.passes(self.user1))
 
 
 class UserShouldNotPassUnfollowTimestampBelowLimit(UserFilterTest):
 
-    @freezegun.freeze_time("2012-10-01 02:00:00", tz_offset=0)
+    @freezegun.freeze_time("2016-10-12 13:00:00", tz_offset=0)
     def runTest(self):
-        unfollows_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=2)
-        self.user1.bot_data = testcommon.factory.create_bot_data(
-            last_unfollow_timestamp=datetime.datetime(year=2012, month=10, day=1, hour=1, tzinfo=pytz.UTC))
+        unfollows_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=4)
         self.assertFalse(unfollows_filter.passes(self.user1))
