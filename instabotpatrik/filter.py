@@ -119,7 +119,7 @@ class LastUnfollowFilter:
         :type user: instabotpatrik.model.InstagramUser
         :rtype: bool
         """
-        if user.bot_data.last_unfollow_timestamp is None:
+        if user.bot_data.dt_unfollow is None:
             return True
         else:
             return self._get_seconds_passed(user) > self.minimal_delay_sec
@@ -127,12 +127,12 @@ class LastUnfollowFilter:
     @staticmethod
     def _get_seconds_passed(user):
         now = instabotpatrik.tools.get_utc_datetime()
-        ts = user.bot_data.last_unfollow_timestamp
+        ts = user.bot_data.dt_unfollow
         r = now - ts
-        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.last_unfollow_timestamp).seconds
+        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.dt_unfollow).seconds
 
     def get_filter_result_as_string(self, user):
-        if user.bot_data.last_unfollow_timestamp is None:
+        if user.bot_data.dt_unfollow is None:
             return "There's no unfollow timestmap record."
         else:
             return "Time passed since last unfollow %f. Minimal delay is %f." % (
@@ -150,17 +150,17 @@ class LastFollowFilter:
         :type user: instabotpatrik.model.InstagramUser
         :rtype: bool
         """
-        if user.bot_data.last_follow_timestamp is None:
+        if user.bot_data.dt_follow is None:
             return True
         else:
             return self._get_seconds_passed(user) > self.minimal_delay_sec
 
     @staticmethod
     def _get_seconds_passed(user):
-        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.last_follow_timestamp).seconds
+        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.dt_follow).seconds
 
     def get_filter_result_as_string(self, user):
-        if user.bot_data.last_follow_timestamp is None:
+        if user.bot_data.dt_follow is None:
             return "There's no follow timestmap record."
         else:
             return "Time passed since last follow %f. Minimal delay is %f." % (
@@ -179,17 +179,17 @@ class LastLikeFilter:
         :returns: True if it is true that user's media was liked more than threshold. False otherwise
         :rtype: bool
         """
-        if user.bot_data.last_like_timestamp is None:
+        if user.bot_data.dt_like is None:
             return True
         else:
             return self._get_seconds_passed(user) > self.threshold_sec
 
     @staticmethod
     def _get_seconds_passed(user):
-        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.last_like_timestamp).seconds
+        return (instabotpatrik.tools.get_utc_datetime() - user.bot_data.dt_like).seconds
 
     def get_filter_result_as_string(self, user):
-        if user.bot_data.last_like_timestamp is None:
+        if user.bot_data.dt_like is None:
             return "There's no like timestmap record."
         else:
             return "Time passed since last like %f. Minimal delay is %f." % (

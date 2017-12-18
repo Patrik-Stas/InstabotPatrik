@@ -11,14 +11,14 @@ class LfsWorkflow:
         self.lfs_likes_for_user_max = 4
         self.liking_session_like_delay_min_sec = 3
         self.liking_session_like_delay_max_sec = 20
-        self.last_like_timestamp_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=24 * 2)
-        self.last_follow_timestamp_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
-        self.last_unfollow_timestamp_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=24 * 7)
+        self.dt_like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=24 * 2)
+        self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
+        self.dt_unfollow_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=24 * 7)
 
     def is_approved_for_lfs(self, user):
-        return self.last_follow_timestamp_filter.passes(user) \
-               and self.last_unfollow_timestamp_filter.passes(user) \
-               and self.last_like_timestamp_filter.passes(user)
+        return self.dt_follow_filter.passes(user) \
+               and self.dt_unfollow_filter.passes(user) \
+               and self.dt_like_filter.passes(user)
 
     def _wait_before_new_like(self, media_owner):
         sleepsec = random.randint(self.liking_session_like_delay_min_sec, self.liking_session_like_delay_max_sec)
@@ -78,13 +78,13 @@ class UnfollowWorkflow:
         :type core: instabotpatrik.core.InstabotCore
         """
         self.core = core
-        self.last_follow_timestamp_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
+        self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
 
     def find_user_to_unfollow(self):
         followed_users = self.core.get_followed_users()
 
         for user in followed_users:
-            if self.last_follow_timestamp_filter.passes(user):
+            if self.dt_follow_filter.passes(user):
                 self.core.refresh_user_data(user)
                 if user.detail.user_follows_us is False:
                     return user

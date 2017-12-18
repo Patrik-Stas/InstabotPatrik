@@ -46,15 +46,15 @@ class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
         self.assertEqual(user1_loaded.detail.we_follow_user, user1.detail.we_follow_user)
         self.assertEqual(user1_loaded.detail.user_follows_us, user1.detail.user_follows_us)
 
-        self.assertEqual(user1_loaded.bot_data.count_likes, None)
-        self.assertEqual(user1_loaded.bot_data.last_like_timestamp, None)
-        self.assertEqual(user1_loaded.bot_data.last_follow_timestamp, None)
-        self.assertEqual(user1_loaded.bot_data.last_unfollow_timestamp, None)
+        self.assertEqual(user1_loaded.bot_data.count_likes_we_gave, None)
+        self.assertEqual(user1_loaded.bot_data.dt_like, None)
+        self.assertEqual(user1_loaded.bot_data.dt_follow, None)
+        self.assertEqual(user1_loaded.bot_data.dt_unfollow, None)
 
         like_timestamp = datetime.datetime.now(pytz.UTC)
         user1_loaded.detail.count_followed_by = 12321
         user1_loaded.detail.user_follows_us = False
-        user1_loaded.bot_data.last_like_timestamp = like_timestamp
+        user1_loaded.bot_data.dt_like = like_timestamp
         self.repository.update_user(user1_loaded)
 
         user1_loaded2 = self.repository.find_user(instagram_id)
@@ -69,10 +69,10 @@ class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
         self.assertEqual(user1_loaded2.detail.we_follow_user, user1.detail.we_follow_user)
         self.assertEqual(user1_loaded2.detail.user_follows_us, False)
 
-        self.assertEqual(user1_loaded2.bot_data.count_likes, user1.bot_data.count_likes)
-        self.assertEqual(user1_loaded2.bot_data.last_like_timestamp, like_timestamp)
-        self.assertEqual(user1_loaded2.bot_data.last_follow_timestamp, None)
-        self.assertEqual(user1_loaded2.bot_data.last_unfollow_timestamp, None)
+        self.assertEqual(user1_loaded2.bot_data.count_likes_we_gave, user1.bot_data.count_likes_we_gave)
+        self.assertEqual(user1_loaded2.bot_data.dt_like, like_timestamp)
+        self.assertEqual(user1_loaded2.bot_data.dt_follow, None)
+        self.assertEqual(user1_loaded2.bot_data.dt_unfollow, None)
 
 
 class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):

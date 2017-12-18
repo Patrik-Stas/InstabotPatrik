@@ -13,9 +13,9 @@ class UserFilterTest(unittest.TestCase):
     def setUp(self):
         detail1 = testcommon.factory.create_user_detail(count_follows=11, count_followed_by=22, count_shared_media=33)
         history1 = testcommon.factory.create_bot_data(
-            last_like_timestamp=datetime.datetime(year=2012, month=10, day=10, hour=10, tzinfo=pytz.UTC),
-            last_follow_timestamp=datetime.datetime(year=2014, month=10, day=10, hour=10, tzinfo=pytz.UTC),
-            last_unfollow_timestamp=datetime.datetime(year=2016, month=10, day=10, hour=10, tzinfo=pytz.UTC))
+            dt_like=datetime.datetime(year=2012, month=10, day=10, hour=10, tzinfo=pytz.UTC),
+            dt_follow=datetime.datetime(year=2014, month=10, day=10, hour=10, tzinfo=pytz.UTC),
+            dt_unfollow=datetime.datetime(year=2016, month=10, day=10, hour=10, tzinfo=pytz.UTC))
         self.user1 = instabotpatrik.model.InstagramUser(instagram_id="a",
                                                         username="A",
                                                         user_detail=detail1,

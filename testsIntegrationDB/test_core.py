@@ -69,13 +69,13 @@ class ItShouldCorrectlyTrackNumberOfLikedMediasOfUser(CoreDBInteractionsTestCase
 
         self.core.like(media1)
         user_load1 = self.core.get_user_by_id("owner_id1")
-        self.assertEqual(user_load1.bot_data.count_likes, 1)
+        self.assertEqual(user_load1.bot_data.count_likes_we_gave, 1)
 
         self.core.like(media2)
         self.core.like(media2)
 
         user_load2 = self.core.get_user_by_id("owner_id1")
-        self.assertEqual(user_load2.bot_data.count_likes, 2)
+        self.assertEqual(user_load2.bot_data.count_likes_we_gave, 2)
 
 
 class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCase):
@@ -100,10 +100,10 @@ class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCas
             user_follows_us=False
         )
         bot_data = instabotpatrik.model.InstagramUserBotHistory(
-            count_likes=10,
-            last_like_timestamp=None,
-            last_follow_timestamp=None,
-            last_unfollow_timestamp=None)
+            count_likes_we_gave=10,
+            last_like_datetime=None,
+            last_follow_datetime=None,
+            last_unfollow_datetime=None)
         owner = instabotpatrik.model.InstagramUser(
             instagram_id="abcd1337",
             username="foouser",
@@ -119,8 +119,8 @@ class ItShouldUpdateExistingUserInDBWhoseMediaWasLiked(CoreDBInteractionsTestCas
 
         owner_user = self.repo_bot.find_user("abcd1337")
         self.assertEqual("abcd1337", owner_user.instagram_id)
-        self.assertEqual(11, owner_user.bot_data.count_likes)
-        self.assertEqual(like_time, owner_user.bot_data.last_like_timestamp)
+        self.assertEqual(11, owner_user.bot_data.count_likes_we_gave)
+        self.assertEqual(like_time, owner_user.bot_data.dt_like)
 
 
 class ItShouldCreateUserIfNotStoredAndHisMediaWasLiked(CoreDBInteractionsTestCase):
@@ -142,7 +142,7 @@ class ItShouldCreateUserIfNotStoredAndHisMediaWasLiked(CoreDBInteractionsTestCas
         owner_user = self.repo_bot.find_user("abcd1337")
 
         self.assertEqual("abcd1337", owner_user.instagram_id)
-        self.assertEqual(1, owner_user.bot_data.count_likes)
+        self.assertEqual(1, owner_user.bot_data.count_likes_we_gave)
 
 
 # class GetMediaOwnerShouldUpdateUserDetailsInDatabase(CoreDBInteractionsTestCase):
@@ -154,7 +154,7 @@ class ItShouldCreateUserIfNotStoredAndHisMediaWasLiked(CoreDBInteractionsTestCas
 #             instagram_id="abcd1337",
 #             url="www.url.com",
 #             username="foouser",
-#             count_likes=10,
+#             count_likes_we_gave=10,
 #             count_shared_media=1,
 #             count_follows=2,
 #             count_followed_by=3,
@@ -168,7 +168,7 @@ class ItShouldCreateUserIfNotStoredAndHisMediaWasLiked(CoreDBInteractionsTestCas
 #         owner_user = self.repo_bot.find_user("abcd1337")
 #
 #         self.assertEqual("abcd1337", owner_user.instagram_id)
-#         self.assertEqual(1, owner_user.count_likes)
+#         self.assertEqual(1, owner_user.count_likes_we_gave)
 
 def get_sample_user(*args, **kwargs):
     detail = instabotpatrik.model.InstagramUserDetail(
@@ -191,10 +191,10 @@ class ItShouldUpdateDbWhenNewUserInformationAvailable(CoreDBInteractionsTestCase
     def runTest(self):
         # prepare
         bot_data = instabotpatrik.model.InstagramUserBotHistory(
-            count_likes=10,
-            last_like_timestamp=None,
-            last_follow_timestamp=None,
-            last_unfollow_timestamp=None
+            count_likes_we_gave=10,
+            last_like_datetime=None,
+            last_follow_datetime=None,
+            last_unfollow_datetime=None
         )
         self.repo_bot.update_user(instabotpatrik.model.InstagramUser("userid1337", bot_history=bot_data))
         media_mock = instabotpatrik.model.InstagramMedia("media123", "code123", "userid1337", "#caption")
@@ -214,10 +214,10 @@ class ItShouldUpdateDbWhenNewUserInformationAvailable(CoreDBInteractionsTestCase
         self.assertEqual(user.detail.count_followed_by, db_user.detail.count_followed_by)
         self.assertEqual(user.detail.we_follow_user, db_user.detail.we_follow_user)
         self.assertEqual(user.detail.user_follows_us, db_user.detail.user_follows_us)
-        self.assertEqual(user.bot_data.count_likes, db_user.bot_data.count_likes)
-        self.assertEqual(user.bot_data.last_like_timestamp, db_user.bot_data.last_like_timestamp)
-        self.assertEqual(user.bot_data.last_follow_timestamp, db_user.bot_data.last_follow_timestamp)
-        self.assertEqual(user.bot_data.last_unfollow_timestamp, db_user.bot_data.last_unfollow_timestamp)
+        self.assertEqual(user.bot_data.count_likes_we_gave, db_user.bot_data.count_likes_we_gave)
+        self.assertEqual(user.bot_data.dt_like, db_user.bot_data.dt_like)
+        self.assertEqual(user.bot_data.dt_follow, db_user.bot_data.dt_follow)
+        self.assertEqual(user.bot_data.dt_unfollow, db_user.bot_data.dt_unfollow)
 
 
 class ItShouldCorrectlyPersistUserDataInDb(CoreDBInteractionsTestCase):
@@ -229,10 +229,10 @@ class ItShouldCorrectlyPersistUserDataInDb(CoreDBInteractionsTestCase):
     def runTest(self):
         # prepare
         bot_data = instabotpatrik.model.InstagramUserBotHistory(
-            count_likes=10,
-            last_like_timestamp=None,
-            last_follow_timestamp=None,
-            last_unfollow_timestamp=None
+            count_likes_we_gave=10,
+            last_like_datetime=None,
+            last_follow_datetime=None,
+            last_unfollow_datetime=None
         )
         instabotpatrik.model.InstagramUser("userid1337", bot_history=bot_data, username="username1337")
         # self.repo_bot.update_user(instabotpatrik.model.InstagramUser("userid1337", bot_history=bot_data))
@@ -256,7 +256,7 @@ class ItShouldCorrectlyPersistUserDataInDb(CoreDBInteractionsTestCase):
         self.assertEqual(user.detail.count_followed_by, db_user.detail.count_followed_by)
         self.assertEqual(user.detail.we_follow_user, db_user.detail.we_follow_user)
         self.assertEqual(user.detail.user_follows_us, db_user.detail.user_follows_us)
-        self.assertEqual(datetime.datetime(2012, 10, 1, 2, 0, 0, tzinfo=pytz.UTC), db_user.bot_data.last_like_timestamp)
+        self.assertEqual(datetime.datetime(2012, 10, 1, 2, 0, 0, tzinfo=pytz.UTC), db_user.bot_data.dt_like)
         self.assertEqual(datetime.datetime(2012, 10, 1, 2, 0, 0, tzinfo=pytz.UTC),
-                         db_user.bot_data.last_follow_timestamp)
-        self.assertEqual(user.bot_data.count_likes, db_user.bot_data.count_likes)
+                         db_user.bot_data.dt_follow)
+        self.assertEqual(user.bot_data.count_likes_we_gave, db_user.bot_data.count_likes_we_gave)

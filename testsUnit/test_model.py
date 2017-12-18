@@ -4,10 +4,10 @@ import unittest.mock
 
 class UserDetailTestCase(unittest.TestCase):
     def setUp(self):
-        self.original_history = instabotpatrik.model.InstagramUserBotHistory(count_likes=10,
-                                                                             last_like_timestamp="timestamp1",
-                                                                             last_follow_timestamp="timestamp2",
-                                                                             last_unfollow_timestamp="timestamp3")
+        self.original_history = instabotpatrik.model.InstagramUserBotHistory(count_likes_we_gave=10,
+                                                                             last_like_datetime="timestamp1",
+                                                                             last_follow_datetime="timestamp2",
+                                                                             last_unfollow_datetime="timestamp3")
         old_details = instabotpatrik.model.InstagramUserDetail(url="http://www.foo.com",
                                                                count_shared_media=1,
                                                                count_follows=2,
@@ -58,7 +58,7 @@ class ItShouldNotModifyBotHistory(UserDetailTestCase):
     def runTest(self):
         self.user.update_details(self.new_version_user)
 
-        self.assertEqual(self.user.bot_data.count_likes, self.original_history.count_likes)
-        self.assertEqual(self.user.bot_data.last_like_timestamp, self.original_history.last_like_timestamp)
-        self.assertEqual(self.user.bot_data.last_follow_timestamp, self.original_history.last_follow_timestamp)
-        self.assertEqual(self.user.bot_data.last_unfollow_timestamp, self.original_history.last_unfollow_timestamp)
+        self.assertEqual(self.user.bot_data.count_likes_we_gave, self.original_history.count_likes_we_gave)
+        self.assertEqual(self.user.bot_data.dt_like, self.original_history.dt_like)
+        self.assertEqual(self.user.bot_data.dt_follow, self.original_history.dt_follow)
+        self.assertEqual(self.user.bot_data.dt_unfollow, self.original_history.dt_unfollow)

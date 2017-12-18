@@ -40,10 +40,10 @@ def from_db_to_datetime(time_string):
 
 def map_user_dict_to_obj(user_dict):
     bot_history = None if user_dict['bot'] is None else instabotpatrik.model.InstagramUserBotHistory(
-        count_likes=user_dict['bot']['count_likes'],
-        last_like_timestamp=from_db_to_datetime(user_dict['bot']['last_like_timestamp']),
-        last_follow_timestamp=from_db_to_datetime(user_dict['bot']['last_follow_timestamp']),
-        last_unfollow_timestamp=from_db_to_datetime(user_dict['bot']['last_unfollow_timestamp'])
+        count_likes_we_gave=user_dict['bot']['count_likes_we_gave'],
+        last_like_datetime=from_db_to_datetime(user_dict['bot']['dt_like']),
+        last_follow_datetime=from_db_to_datetime(user_dict['bot']['dt_follow']),
+        last_unfollow_datetime=from_db_to_datetime(user_dict['bot']['dt_unfollow'])
     )
     user_detail = None if user_dict['detail'] is None else instabotpatrik.model.InstagramUserDetail(
         url=user_dict['detail']['url'],
@@ -149,10 +149,10 @@ class BotRepositoryMongoDb:
             "user_follows_us": user.detail.user_follows_us,
         }
         bot_update = None if user.bot_data is None else {
-            "count_likes": user.bot_data.count_likes,
-            "last_like_timestamp": datetime_to_db_format(user.bot_data.last_like_timestamp),
-            "last_follow_timestamp": datetime_to_db_format(user.bot_data.last_follow_timestamp),
-            "last_unfollow_timestamp": datetime_to_db_format(user.bot_data.last_unfollow_timestamp)
+            "count_likes_we_gave": user.bot_data.count_likes_we_gave,
+            "dt_like": datetime_to_db_format(user.bot_data.dt_like),
+            "dt_follow": datetime_to_db_format(user.bot_data.dt_follow),
+            "dt_unfollow": datetime_to_db_format(user.bot_data.dt_unfollow)
         }
         update = {
             "$set": {

@@ -22,16 +22,16 @@ def create_user_detail(
 
 
 def create_bot_data(
-        count_likes=123,
-        last_like_timestamp=1512845111,
-        last_follow_timestamp=1512845222,
-        last_unfollow_timestamp=1512845333):
+        count_likes_we_gave=123,
+        dt_like=1512845111,
+        dt_follow=1512845222,
+        dt_unfollow=1512845333):
     """
     :rtype: instabotpatrik.model.InstagramUserBotHistory
     """
     return instabotpatrik.model.InstagramUserBotHistory(
-        count_likes=count_likes,
-        last_like_timestamp=last_like_timestamp,
-        last_follow_timestamp=last_follow_timestamp,
-        last_unfollow_timestamp=last_unfollow_timestamp
+        count_likes_we_gave=count_likes_we_gave,
+        last_like_datetime=dt_like,
+        last_follow_datetime=dt_follow,
+        last_unfollow_datetime=dt_unfollow
     )

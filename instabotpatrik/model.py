@@ -11,24 +11,24 @@ class InsufficientInformationException(Exception):
 class InstagramUserBotHistory:
 
     def __init__(self,
-                 count_likes=None,
-                 last_like_timestamp=None,
-                 last_follow_timestamp=None,
-                 last_unfollow_timestamp=None):
+                 count_likes_we_gave=None,
+                 last_like_datetime=None,
+                 last_follow_datetime=None,
+                 last_unfollow_datetime=None):
         """
-        :param count_likes:
-        :type count_likes: int
-        :param last_like_timestamp:
-        :type last_like_timestamp: datetime.datetime
-        :param last_follow_timestamp:
-        :type last_follow_timestamp: datetime.datetime
-        :param last_unfollow_timestamp:
-        :type last_unfollow_timestamp: datetime.datetime
+        :param count_likes_we_gave:
+        :type count_likes_we_gave: int
+        :param last_like_datetime:
+        :type last_like_datetime: datetime.datetime
+        :param last_follow_datetime:
+        :type last_follow_datetime: datetime.datetime
+        :param last_unfollow_datetime:
+        :type last_unfollow_datetime: datetime.datetime
         """
-        self.count_likes = count_likes
-        self.last_like_timestamp = last_like_timestamp
-        self.last_follow_timestamp = last_follow_timestamp
-        self.last_unfollow_timestamp = last_unfollow_timestamp
+        self.count_likes_we_gave = count_likes_we_gave
+        self.dt_like = last_like_datetime
+        self.dt_follow = last_follow_datetime
+        self.dt_unfollow = last_unfollow_datetime
 
 
 class InstagramUserDetail:
@@ -67,6 +67,20 @@ class InstagramUser:
         self._bot_data = bot_history if bot_history is not None else InstagramUserBotHistory()
         self.recent_media = recent_media
 
+    # instagram_id
+    # username
+    # count_likes_we_gave
+    # dt_like
+    # dt_follow
+    # dt_unfollow
+    # url
+    # count_shared_media
+    # count_follows
+    # count_followed_by
+    # we_follow_user
+    # user_follows_us
+
+
     @property
     def detail(self):
         """
@@ -101,23 +115,23 @@ class InstagramUser:
         self._detail = deepcopy(source_user._detail)
 
     def register_follow(self):
-        self._bot_data.last_follow_timestamp = instabotpatrik.tools.get_utc_datetime()
+        self._bot_data.dt_follow = instabotpatrik.tools.get_utc_datetime()
         self._detail.we_follow_user = True
         logging.debug("Registered follow user_id:%s username:%s.")
 
     def register_unfollow(self):
-        self._bot_data.last_unfollow_timestamp = instabotpatrik.tools.get_utc_datetime()
+        self._bot_data.dt_unfollow = instabotpatrik.tools.get_utc_datetime()
         self._detail.we_follow_user = False
         logging.debug("Registered unfollow user_id:%s username:%s")
 
     def register_like(self):
-        self._bot_data.last_like_timestamp = instabotpatrik.tools.get_utc_datetime()
-        if self.bot_data.count_likes is None:
-            self._bot_data.count_likes = 1
+        self._bot_data.dt_like = instabotpatrik.tools.get_utc_datetime()
+        if self.bot_data.count_likes_we_gave is None:
+            self._bot_data.count_likes_we_gave = 1
         else:
-            self._bot_data.count_likes += 1
+            self._bot_data.count_likes_we_gave += 1
         logging.debug("Registered like for user_id:%s username:%s. He has now %d likes",
-                      self.instagram_id, self.username, self.bot_data.count_likes)
+                      self.instagram_id, self.username, self.bot_data.count_likes_we_gave)
 
 
 class InstagramMedia:
