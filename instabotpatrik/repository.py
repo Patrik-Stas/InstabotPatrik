@@ -39,7 +39,7 @@ def from_db_to_datetime(time_string):
 
 
 def map_user_dict_to_obj(user_dict):
-    bot_history = None if user_dict['bot'] is None else instabotpatrik.model.InstagramUserBotHistory(
+    bot_history = None if user_dict['bot'] is None else instabotpatrik.model.InstagramUserBotData(
         count_likes_we_gave=user_dict['bot']['count_likes_we_gave'],
         last_like_datetime=from_db_to_datetime(user_dict['bot']['dt_like']),
         last_follow_datetime=from_db_to_datetime(user_dict['bot']['dt_follow']),
@@ -57,7 +57,7 @@ def map_user_dict_to_obj(user_dict):
         instagram_id=user_dict['instagram_id'],
         username=user_dict['username'],
         user_detail=user_detail,
-        bot_history=bot_history
+        bot_data=bot_history
     )
 
 
@@ -140,19 +140,19 @@ class BotRepositoryMongoDb:
         it will be updated. If user with such username is not found, it will be inserted.
         :type user: instabotpatrik.model.InstagramUser
         """
-        detail_update = None if user.detail is None else {
-            "url": user.detail.url,
-            "count_shared_media": user.detail.count_shared_media,
-            "count_follows": user.detail.count_follows,
-            "count_followed_by": user.detail.count_followed_by,
-            "we_follow_user": user.detail.we_follow_user,
-            "user_follows_us": user.detail.user_follows_us,
+        detail_update = None if user.is_fully_known() is None else {
+            "url": user.url,
+            "count_shared_media": user.count_shared_media,
+            "count_follows": user.count_follows,
+            "count_followed_by": user.count_followed_by,
+            "we_follow_user": user.we_follow_user,
+            "user_follows_us": user.user_follows_us,
         }
-        bot_update = None if user.bot_data is None else {
-            "count_likes_we_gave": user.bot_data.count_likes_we_gave,
-            "dt_like": datetime_to_db_format(user.bot_data.dt_like),
-            "dt_follow": datetime_to_db_format(user.bot_data.dt_follow),
-            "dt_unfollow": datetime_to_db_format(user.bot_data.dt_unfollow)
+        bot_update = {
+            "count_likes_we_gave": user.count_likes_we_gave,
+            "dt_like": datetime_to_db_format(user.dt_like),
+            "dt_follow": datetime_to_db_format(user.dt_follow),
+            "dt_unfollow": datetime_to_db_format(user.dt_unfollow)
         }
         update = {
             "$set": {

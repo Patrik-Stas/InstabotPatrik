@@ -19,7 +19,7 @@ class UserFilterTest(unittest.TestCase):
         self.user1 = instabotpatrik.model.InstagramUser(instagram_id="a",
                                                         username="A",
                                                         user_detail=detail1,
-                                                        bot_history=history1)
+                                                        bot_data=history1)
 
 
 class UserShouldPassFollowsCountFilter(UserFilterTest):

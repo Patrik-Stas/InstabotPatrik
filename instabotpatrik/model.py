@@ -8,7 +8,7 @@ class InsufficientInformationException(Exception):
         self.message = message
 
 
-class InstagramUserBotHistory:
+class InstagramUserBotData:
 
     def __init__(self,
                  count_likes_we_gave=None,
@@ -52,50 +52,67 @@ class InstagramUser:
 
     def __init__(self,
                  instagram_id,
-                 bot_history=None,
                  username=None,
                  user_detail=None,
+                 bot_data=InstagramUserBotData(),
                  recent_media=[]):
         """
-
         :type user_detail: InstagramUserDetail
-        :type bot_history: InstagramUserBotHistory
+        :type bot_data: InstagramUserBotData
         """
-        self.instagram_id = instagram_id
-        self.username = username
+        self._instagram_id = instagram_id
+        self._username = username
         self._detail = user_detail
-        self._bot_data = bot_history if bot_history is not None else InstagramUserBotHistory()
-        self.recent_media = recent_media
-
-    # instagram_id
-    # username
-    # count_likes_we_gave
-    # dt_like
-    # dt_follow
-    # dt_unfollow
-    # url
-    # count_shared_media
-    # count_follows
-    # count_followed_by
-    # we_follow_user
-    # user_follows_us
-
+        self._bot_data = bot_data
+        self.recent_media = recent_media  # not persisted, this could easily change
 
     @property
-    def detail(self):
-        """
-        :return:
-        :rtype: InstagramUserDetail
-        """
-        return self._detail
+    def instagram_id(self):
+        return self._instagram_id
 
     @property
-    def bot_data(self):
-        """
-        :return:
-        :rtype: InstagramUserBotHistory
-        """
-        return self._bot_data
+    def username(self):
+        return self._username
+
+    @property
+    def count_likes_we_gave(self):
+        return self._bot_data.count_likes_we_gave if self._bot_data else None
+
+    @property
+    def dt_like(self):
+        return self._bot_data.dt_like if self._bot_data else None
+
+    @property
+    def dt_follow(self):
+        return self._bot_data.dt_follow if self._bot_data else None
+
+    @property
+    def dt_unfollow(self):
+        return self._bot_data.dt_unfollow if self._bot_data else None
+
+    @property
+    def url(self):
+        return self._detail.url if self._detail else None
+
+    @property
+    def count_shared_media(self):
+        return self._detail.count_shared_media if self._detail else None
+
+    @property
+    def count_follows(self):
+        return self._detail.count_follows if self._detail else None
+
+    @property
+    def count_followed_by(self):
+        return self._detail.count_followed_by if self._detail else None
+
+    @property
+    def we_follow_user(self):
+        return self._detail.we_follow_user if self._detail else None
+
+    @property
+    def user_follows_us(self):
+        return self._detail.user_follows_us if self._detail else None
 
     def is_fully_known(self):  # Information available if user profile is viewed
         return self.instagram_id is not None \
@@ -111,7 +128,7 @@ class InstagramUser:
             if self.instagram_id != source_user.instagram_id:
                 raise Exception("updating information on user(%s) from user with different ID(%s) doesnt. make sense.",
                                 self.instagram_id, source_user.instagram_id)
-        self.username = source_user.username
+        self._username = source_user.username
         self._detail = deepcopy(source_user._detail)
 
     def register_follow(self):
@@ -126,12 +143,12 @@ class InstagramUser:
 
     def register_like(self):
         self._bot_data.dt_like = instabotpatrik.tools.get_utc_datetime()
-        if self.bot_data.count_likes_we_gave is None:
+        if self.count_likes_we_gave is None:
             self._bot_data.count_likes_we_gave = 1
         else:
             self._bot_data.count_likes_we_gave += 1
         logging.debug("Registered like for user_id:%s username:%s. He has now %d likes",
-                      self.instagram_id, self.username, self.bot_data.count_likes_we_gave)
+                      self.instagram_id, self.username, self.count_likes_we_gave)
 
 
 class InstagramMedia:

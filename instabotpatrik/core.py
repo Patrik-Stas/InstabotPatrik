@@ -137,7 +137,7 @@ class InstabotCore:
         if user.is_fully_known() is False or asure_fresh_data:
             if media.owner_username is None:
                 media = self.api_client.get_media_detail(media.shortcode)  # display media detail
-            user.username = media.owner_username
+            # user.username = media.owner_username
             self.refresh_user_data(user)
         return user
 

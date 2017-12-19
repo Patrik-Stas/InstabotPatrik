@@ -64,7 +64,7 @@ class LfsWorkflow:
                 likes_given += 1
 
         logging.info("[LFS] Liking finished, let's follow him if we don't.")
-        if media_owner.detail.we_follow_user is False:
+        if media_owner.we_follow_user is False:
             self.core.follow(media_owner)
 
         logging.info("[LFS] Finished. [user_id::%s username:%s] Gave %d likes.",
@@ -86,7 +86,7 @@ class UnfollowWorkflow:
         for user in followed_users:
             if self.dt_follow_filter.passes(user):
                 self.core.refresh_user_data(user)
-                if user.detail.user_follows_us is False:
+                if user.user_follows_us is False:
                     return user
         return None
 

@@ -27,9 +27,9 @@ def create_bot_data(
         dt_follow=1512845222,
         dt_unfollow=1512845333):
     """
-    :rtype: instabotpatrik.model.InstagramUserBotHistory
+    :rtype: instabotpatrik.model.InstagramUserBotData
     """
-    return instabotpatrik.model.InstagramUserBotHistory(
+    return instabotpatrik.model.InstagramUserBotData(
         count_likes_we_gave=count_likes_we_gave,
         last_like_datetime=dt_like,
         last_follow_datetime=dt_follow,

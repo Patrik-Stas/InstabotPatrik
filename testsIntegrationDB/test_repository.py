@@ -39,22 +39,22 @@ class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
         self.assertEqual(user1_loaded.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded.username, user1.username)
 
-        self.assertEqual(user1_loaded.detail.url, user1.detail.url)
-        self.assertEqual(user1_loaded.detail.count_shared_media, user1.detail.count_shared_media)
-        self.assertEqual(user1_loaded.detail.count_follows, user1.detail.count_follows)
-        self.assertEqual(user1_loaded.detail.count_followed_by, user1.detail.count_followed_by)
-        self.assertEqual(user1_loaded.detail.we_follow_user, user1.detail.we_follow_user)
-        self.assertEqual(user1_loaded.detail.user_follows_us, user1.detail.user_follows_us)
+        self.assertEqual(user1_loaded.url, user1.url)
+        self.assertEqual(user1_loaded.count_shared_media, user1.count_shared_media)
+        self.assertEqual(user1_loaded.count_follows, user1.count_follows)
+        self.assertEqual(user1_loaded.count_followed_by, user1.count_followed_by)
+        self.assertEqual(user1_loaded.we_follow_user, user1.we_follow_user)
+        self.assertEqual(user1_loaded.user_follows_us, user1.user_follows_us)
 
-        self.assertEqual(user1_loaded.bot_data.count_likes_we_gave, None)
-        self.assertEqual(user1_loaded.bot_data.dt_like, None)
-        self.assertEqual(user1_loaded.bot_data.dt_follow, None)
-        self.assertEqual(user1_loaded.bot_data.dt_unfollow, None)
+        self.assertEqual(user1_loaded.count_likes_we_gave, None)
+        self.assertEqual(user1_loaded.dt_like, None)
+        self.assertEqual(user1_loaded.dt_follow, None)
+        self.assertEqual(user1_loaded.dt_unfollow, None)
 
         like_timestamp = datetime.datetime.now(pytz.UTC)
-        user1_loaded.detail.count_followed_by = 12321
-        user1_loaded.detail.user_follows_us = False
-        user1_loaded.bot_data.dt_like = like_timestamp
+        user1_loaded.count_followed_by = 12321
+        user1_loaded.user_follows_us = False
+        user1_loaded.dt_like = like_timestamp
         self.repository.update_user(user1_loaded)
 
         user1_loaded2 = self.repository.find_user(instagram_id)
@@ -62,17 +62,17 @@ class ItShouldSaveAndLoadUpdateUser(RepositoryTestCase):
         self.assertEqual(user1_loaded2.instagram_id, user1.instagram_id)
         self.assertEqual(user1_loaded2.username, user1.username)
 
-        self.assertEqual(user1_loaded2.detail.url, user1.detail.url)
-        self.assertEqual(user1_loaded2.detail.count_shared_media, user1.detail.count_shared_media)
-        self.assertEqual(user1_loaded2.detail.count_follows, user1.detail.count_follows)
-        self.assertEqual(user1_loaded2.detail.count_followed_by, 12321)
-        self.assertEqual(user1_loaded2.detail.we_follow_user, user1.detail.we_follow_user)
-        self.assertEqual(user1_loaded2.detail.user_follows_us, False)
+        self.assertEqual(user1_loaded2.url, user1.url)
+        self.assertEqual(user1_loaded2.count_shared_media, user1.count_shared_media)
+        self.assertEqual(user1_loaded2.count_follows, user1.count_follows)
+        self.assertEqual(user1_loaded2.count_followed_by, 12321)
+        self.assertEqual(user1_loaded2.we_follow_user, user1.we_follow_user)
+        self.assertEqual(user1_loaded2.user_follows_us, False)
 
-        self.assertEqual(user1_loaded2.bot_data.count_likes_we_gave, user1.bot_data.count_likes_we_gave)
-        self.assertEqual(user1_loaded2.bot_data.dt_like, like_timestamp)
-        self.assertEqual(user1_loaded2.bot_data.dt_follow, None)
-        self.assertEqual(user1_loaded2.bot_data.dt_unfollow, None)
+        self.assertEqual(user1_loaded2.count_likes_we_gave, user1.count_likes_we_gave)
+        self.assertEqual(user1_loaded2.dt_like, like_timestamp)
+        self.assertEqual(user1_loaded2.dt_follow, None)
+        self.assertEqual(user1_loaded2.dt_unfollow, None)
 
 
 class ItShouldSaveAndLoadUpdateMedia(RepositoryTestCase):

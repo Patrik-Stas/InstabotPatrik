@@ -80,12 +80,12 @@ class ItShouldParseUserDetails(unittest.TestCase):
 
         self.assertEqual(user.instagram_id, "5804069718")
         self.assertEqual(user.username, "traveltravel")
-        self.assertEqual(user.detail.url, "http://www.user-url.com/")
-        self.assertEqual(user.detail.count_shared_media, 70)
-        self.assertEqual(user.detail.count_follows, 3873)
-        self.assertEqual(user.detail.count_followed_by, 2198)
-        self.assertEqual(user.detail.we_follow_user, False)
-        self.assertEqual(user.detail.user_follows_us, True)
+        self.assertEqual(user.url, "http://www.user-url.com/")
+        self.assertEqual(user.count_shared_media, 70)
+        self.assertEqual(user.count_follows, 3873)
+        self.assertEqual(user.count_followed_by, 2198)
+        self.assertEqual(user.we_follow_user, False)
+        self.assertEqual(user.user_follows_us, True)
         session_mock.get.assert_called_with("https://www.instagram.com/traveluser/?__a=1")
 
 
