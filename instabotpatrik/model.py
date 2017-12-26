@@ -54,17 +54,16 @@ class InstagramUser:
                  instagram_id,
                  username=None,
                  user_detail=None,
-                 bot_data=InstagramUserBotData(),
-                 recent_media=[]):
+                 bot_data=None):
         """
         :type user_detail: InstagramUserDetail
         :type bot_data: InstagramUserBotData
         """
+        default_bot_data = InstagramUserBotData()
         self._instagram_id = instagram_id
         self._username = username
         self._detail = user_detail
-        self._bot_data = bot_data
-        self.recent_media = recent_media  # not persisted, this could easily change
+        self._bot_data = bot_data if bot_data else default_bot_data
 
     @property
     def instagram_id(self):
@@ -73,6 +72,12 @@ class InstagramUser:
     @property
     def username(self):
         return self._username
+
+    @username.setter
+    def username(self, new_username):
+        if not new_username:
+            raise InsufficientInformationException("Trying to explicitely set 'None' username.")
+        self._username = new_username
 
     @property
     def count_likes_we_gave(self):
@@ -154,9 +159,9 @@ class InstagramUser:
 class InstagramMedia:
     def __init__(self,
                  instagram_id,
-                 shortcode,
-                 owner_id,
-                 caption,
+                 shortcode=None,
+                 owner_id=None,
+                 caption=None,
                  like_count=None,
                  owner_username=None,
                  is_liked=None,

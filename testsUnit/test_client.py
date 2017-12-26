@@ -27,7 +27,7 @@ class ItShouldParseGetMediaByTag(unittest.TestCase):
             requests_session=session_mock
         )
 
-        medias = client.get_latest_media_by_tag("prague")
+        medias = client.get_recent_media_by_tag("prague")
 
         first = medias[0]
         self.assertEqual(len(medias), 17, "No media received")

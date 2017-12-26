@@ -5,20 +5,20 @@ import logging
 
 
 class StrategyMediaScanBasic:
-    def __init__(self, core):
+    def __init__(self, media_controller): #
         """
-        :type core: instabotpatrik.core.InstabotCore
+        :type media_controller: instabotpatrik.core.MediaController
         """
-        self.core = core
+        self.media_controller = media_controller
 
-    def get_media_of_other_people(self, tag):
+    def get_recent_media(self, tag):
         """
         Returns list of the most recently posted media, excluding our own.
         :param tag: tag to be scanner
         :return: list of recent media objects for tag
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
-        return self.core.get_latest_media_by_tag(tag=tag, include_own=False)
+        return self.media_controller.get_recent_media_by_tag(tag=tag, exclude=False)
 
 
 class StrategyTagSelectionBasic:

@@ -19,21 +19,25 @@ import random
 class InstaBot:
 
     def __init__(self,
-                 core,
-                 strategy_tag_selection,
-                 strategy_media_scan):
+                 media_controller,
+                 user_controller,
+                 login_controller,
+                 strategy_tag_selection):
         """
-        :param core:
-        :type core: instabotpatrik.core.InstabotCore
-        :param strategy_tag_selection:
-        :type strategy_tag_selection: instabotpatrik.strategy.StrategyTagSelectionBasic
-        :param strategy_media_scan:
-        :type strategy_media_scan: instabotpatrik.strategy.StrategyMediaScanBasic
+        :param media_controller:
+        :type media_controller: instabotpatrik.core.MediaController
+        :param user_controller:
+        :type user_controller: instabotpatrik.core.UserController
+        :param login_controller:
+        :type login_controller: instabotpatrik.core.AccountController
         """
-        self.core = core
+
+        self.media_controller = media_controller
+        self.user_controller = user_controller
+        self.login_controller = login_controller
+
         self.bot_start = datetime.datetime.now()
         self.strategy_tag_selection = strategy_tag_selection
-        self.strategy_media_scan = strategy_media_scan
 
         self.like_per_day_cap = 600
         self.follow_per_day_cap = 200
@@ -47,8 +51,9 @@ class InstaBot:
         self.unfollow_delay_sec = self.time_in_day / self.unfollow_per_day_cap
 
         self.action_manager = instabotpatrik.tools.ActionManager()
-        self.unfollow_workflow = instabotpatrik.workflow.UnfollowWorkflow(self.core)
-        self.lfs_workflow = instabotpatrik.workflow.LfsWorkflow(self.core)
+        self.unfollow_workflow = instabotpatrik.workflow.UnfollowWorkflow(user_controller=self.user_controller)
+        self.lfs_workflow = instabotpatrik.workflow.LfsWorkflow(user_controller=self.user_controller,
+                                                                media_controller=self.media_controller)
 
         self.current_tag = None
         self._stopped = False
@@ -78,7 +83,8 @@ class InstaBot:
                 if self.action_manager.is_action_allowed_now("liking_session"):
                     media = medias.pop()
                     logging.info("[INSTABOT] Going to check if we can do LFS on media %s", media.shortcode)
-                    media_owner = self.core.get_media_owner(media)  # as if we explore the user profile
+                    media_owner = self.user_controller.get_media_owner(media_shortcode=media.shortcode,
+                                                                       asure_fresh_data=True)  # explore users profile
                     if self.lfs_workflow.is_approved_for_lfs(media_owner):
                         logging.info("[INSTABOT] Starting LFS on owner of media %s", media.shortcode)
                         try:
@@ -104,14 +110,15 @@ class InstaBot:
         logging.info("[INSTABOT] Daily cap for follow count:%d", self.follow_per_day_cap)
         logging.info("[INSTABOT] Daily cap for unfollow count:%d", self.unfollow_per_day_cap)
 
-        self.core.login()
+        self.login_controller.login()
 
         while not self._stopped:
             try:
                 self.current_tag = self.strategy_tag_selection.get_tag()
                 logging.info("[INSTABOT] Starting main loop. Selected tag: %s", self.current_tag)
-
-                medias = self.strategy_media_scan.get_media_of_other_people(self.current_tag)
+                our_username = self.login_controller.get_our_username()
+                medias = self.media_controller.get_recent_media_by_tag(tag=self.current_tag,
+                                                                       excluded_owner_usernames=[our_username])
                 select_ratio = 0.55
                 medias = random.sample(medias, int(len(medias) * select_ratio))
 

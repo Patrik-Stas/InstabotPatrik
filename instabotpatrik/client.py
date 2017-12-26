@@ -321,7 +321,7 @@ class InstagramClient:
 
         return media_objs
 
-    def get_latest_media_by_tag(self, tag):
+    def get_recent_media_by_tag(self, tag):
         """
         :param tag:
         :return: list of most recently posted media containing specified tag
@@ -355,64 +355,24 @@ class InstagramClient:
     #   }
     # }
 
-    def get_user_with_details(self, username):
+    def get_recent_media_of_user(self, username):
         """
-        :rtype: instabotpatrik.model.InstagramUser
+        :param username:
+        :return:
+        :rtype: list of instabotpatrik.model.InstagramMedia
         """
         r_object = self.get_request(self.url_user_detail % username)
-        user_info = r_object['user']
-        detail = instabotpatrik.model.InstagramUserDetail(url=user_info['external_url'],
-                                                          count_shared_media=user_info['media']['count'],
-                                                          count_follows=user_info['follows']['count'],
-                                                          count_followed_by=user_info['followed_by']['count'],
-                                                          we_follow_user=user_info['followed_by_viewer'],
-                                                          user_follows_us=user_info['follows_viewer'])
-        recent_media_dict = list(r_object['user']['media']['nodes'])
-        recent_media_objs = self._parse_media_nodes(recent_media_dict)
-        return instabotpatrik.model.InstagramUser(instagram_id=user_info['id'],
-                                                  username=user_info['username'],
-                                                  user_detail=detail,
-                                                  recent_media=recent_media_objs)
-
-        # user: {
-        #           biography: "profile description text"
-        #           country_block: false,
-        #           external_url: "http://www.patrikstas.com/",
-        #           external_url_linkshimmed: "ref to external_url via instagram redirection"
-        #           followed_by: { count: 196 },
-        #           followed_by_viewer: false,
-        #           follows: { count: 228 },
-        #           follows_viewer: true,
-        #           full_name: "Patrik Stas",
-        #           has_blocked_viewer: false,
-        #           has_requested_viewer: false,
-        #           id: "508389516",
-        #           is_private: false,
-        #           is_verified: false,
-        #           profile_pic_url: "https://instagram.f6430609_a.jpg",
-        #           profile_pic_url_hd: "https://instagram.f0sadas9_a.jpg",
-        #           requested_by_viewer: false,
-        #           username: "patrikstas",
-        #           connected_fb_page: null,
-        #           media: {
-        #               nodes: [  {}, {} ],
-        #               count: 67,
-        #               page_info: {
-        #                   has_next_page: true,
-        #                   end_cursor: "come_code_4k2j4b32j4b23b2j34"
-        #               }
-        #           },
-        #           saved_media: {
-        #               nodes: [],
-        #               count: 0,
-        #               page_info: {
-        #                   has_next_page: false,
-        #                   end_cursor: null
-        #               }
-        #           }
-        #       },
-        # logging_page_id: "profilePage_508389516"
-        # }
+        dict_medias = list(r_object['user']['media']['nodes'])
+        medias = []
+        for dict_media in dict_medias:
+            recent_media = instabotpatrik.model.InstagramMedia(instagram_id=dict_media['id'],
+                                                               shortcode=dict_media['code'],
+                                                               owner_id=dict_media['owner']['id'],
+                                                               owner_username=username,
+                                                               caption=dict_media['caption'],
+                                                               like_count=dict_media['likes']['count'])
+            medias.append(recent_media)
+        return medias
 
     def get_media_detail(self, shortcode_media):
         """
@@ -420,20 +380,16 @@ class InstagramClient:
         :return: media details
         :rtype: instabotpatrik.model.InstagramMedia
         """
-        try:
-            r_object = self.get_request(self.url_media_detail % shortcode_media)
-            shortcode_media = r_object['graphql']['shortcode_media']
-            return instabotpatrik.model.InstagramMedia(instagram_id=shortcode_media['id'],
-                                                       shortcode=shortcode_media['shortcode'],
-                                                       owner_id=shortcode_media['owner']['id'],
-                                                       owner_username=shortcode_media['owner']['username'],
-                                                       caption=shortcode_media['edge_media_to_caption']
-                                                       ['edges'][0]['node']['text'],
-                                                       is_liked=shortcode_media['viewer_has_liked'],
-                                                       like_count=shortcode_media['edge_media_preview_like']['count'])
-        except Exception as e:
-            logging.error(e, exc_info=True)
-            return None
+        r_object = self.get_request(self.url_media_detail % shortcode_media)
+        shortcode_media = r_object['graphql']['shortcode_media']
+        return instabotpatrik.model.InstagramMedia(instagram_id=shortcode_media['id'],
+                                                   shortcode=shortcode_media['shortcode'],
+                                                   owner_id=shortcode_media['owner']['id'],
+                                                   owner_username=shortcode_media['owner']['username'],
+                                                   caption=shortcode_media['edge_media_to_caption']
+                                                   ['edges'][0]['node']['text'],
+                                                   is_liked=shortcode_media['viewer_has_liked'],
+                                                   like_count=shortcode_media['edge_media_preview_like']['count'])
 
     # {
     #     graphql: {
@@ -484,6 +440,63 @@ class InstagramClient:
     #         }
     #     }
     # }
+
+    def get_user_with_details(self, username):
+        """
+        :rtype: instabotpatrik.model.InstagramUser
+        """
+        r_object = self.get_request(self.url_user_detail % username)
+        user_info = r_object['user']
+
+        detail = instabotpatrik.model.InstagramUserDetail(url=user_info['external_url'],
+                                                          count_shared_media=user_info['media']['count'],
+                                                          count_follows=user_info['follows']['count'],
+                                                          count_followed_by=user_info['followed_by']['count'],
+                                                          we_follow_user=user_info['followed_by_viewer'],
+                                                          user_follows_us=user_info['follows_viewer'])
+        return instabotpatrik.model.InstagramUser(instagram_id=user_info['id'],
+                                                  username=user_info['username'],
+                                                  user_detail=detail)
+
+        # user: {
+        #           biography: "profile description text"
+        #           country_block: false,
+        #           external_url: "http://www.patrikstas.com/",
+        #           external_url_linkshimmed: "ref to external_url via instagram redirection"
+        #           followed_by: { count: 196 },
+        #           followed_by_viewer: false,
+        #           follows: { count: 228 },
+        #           follows_viewer: true,
+        #           full_name: "Patrik Stas",
+        #           has_blocked_viewer: false,
+        #           has_requested_viewer: false,
+        #           id: "508389516",
+        #           is_private: false,
+        #           is_verified: false,
+        #           profile_pic_url: "https://instagram.f6430609_a.jpg",
+        #           profile_pic_url_hd: "https://instagram.f0sadas9_a.jpg",
+        #           requested_by_viewer: false,
+        #           username: "patrikstas",
+        #           connected_fb_page: null,
+        #           media: {
+        #               nodes: [  {}, {} ],
+        #               count: 67,
+        #               page_info: {
+        #                   has_next_page: true,
+        #                   end_cursor: "come_code_4k2j4b32j4b23b2j34"
+        #               }
+        #           },
+        #           saved_media: {
+        #               nodes: [],
+        #               count: 0,
+        #               page_info: {
+        #                   has_next_page: false,
+        #                   end_cursor: null
+        #               }
+        #           }
+        #       },
+        # logging_page_id: "profilePage_508389516"
+        # }
 
     def like(self, media_id):
         """

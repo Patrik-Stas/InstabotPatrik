@@ -26,22 +26,27 @@ class BasicSetup:
                                                               mongo_client=self.mongo_client)
 
         # API CLIENT
-        self.client = api_client if api_client is not None \
+        self.api_client = api_client if api_client is not None \
             else instabotpatrik.client.InstagramClient(user_login=self.cfg.get_instagram_username(),
                                                        user_password=self.cfg.get_instagram_password(),
                                                        requests_session=requests.Session())
 
         # INSTABOT DEPENDENCIES
-        self.core = instabotpatrik.core.InstabotCore(repository=self.repo_bot,
-                                                     api_client=self.client)
+        self.core = instabotpatrik.core.UserController(repository=self.repo_bot,
+                                                       api_client=self.api_client)
 
-        self.strategy_media_scan = instabotpatrik.strategy.StrategyMediaScanBasic(core=self.core)
         self.strategy_tag_selection = instabotpatrik.strategy.StrategyTagSelectionBasic(self.repo_config.get_tags)
 
+        # CONTROLLERS
+        self.account_controller = instabotpatrik.core.AccountController(self.repo_bot, self.api_client)
+        self.user_controller = instabotpatrik.core.UserController(self.repo_bot, self.api_client)
+        self.media_controller = instabotpatrik.core.MediaController(self.repo_bot, self.api_client)
+
         # INSTABOT
-        self.instabot = instabotpatrik.instabot.InstaBot(core=self.core,
-                                                         strategy_tag_selection=self.strategy_tag_selection,
-                                                         strategy_media_scan=self.strategy_media_scan)
+        self.instabot = instabotpatrik.instabot.InstaBot(login_controller=self.account_controller,
+                                                         user_controller=self.user_controller,
+                                                         media_controller=self.media_controller,
+                                                         strategy_tag_selection=self.strategy_tag_selection)
 
     def run(self):
         self.instabot.run()
