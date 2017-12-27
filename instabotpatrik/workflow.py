@@ -94,8 +94,8 @@ class LfsWorkflow:
         likes_given = 0
         for media_to_like in medias_to_like:
             self._wait_before_new_like(media_owner)
-            if self.media_controller.like(media_id=media_to_like.instagram_id, shortcode=media_to_like.shortcode):
-                likes_given += 1
+            self.media_controller.like(media_id=media_to_like.instagram_id, shortcode=media_to_like.shortcode)
+            likes_given += 1
 
         logging.info("[LFS] Liking finished, let's follow him if we don't.")
         if media_owner.we_follow_user is False:
