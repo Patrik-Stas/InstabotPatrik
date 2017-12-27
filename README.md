@@ -23,11 +23,18 @@ password = <value>
 ```
 
 ## Initialize DB
-`invoke generate-db-init `
+- Prepare vars-file with definition of variables to be interpolated into
+template.
+- Generate db-init file
+`invoke generate-db-init --template-file db_init.template.js --var-file prague.vars.json --target-file prague.init.js`
+- Initialize your Mongo instance. Given our init file is `prague.init.js`:
+```mongo --host localhost --port 27017 prague.init.js```
 
 # Run bot
-Run `./bootstrap.py --help` to get help.
-Run `./bootstrap.py --config <path to .ini configuration>`
+- Run `./bootstrap.py --help` to get help.
+- Make sure your .ini configuration is matching name of DB/collections
+in DB-initialization file
+- Run `./bootstrap.py --config <path to .ini configuration>`
 
 # Testing
 - Run `invoke test-local` to run tests which are not communicating with
