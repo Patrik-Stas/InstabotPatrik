@@ -106,49 +106,49 @@ class ItShouldUpdateUserWhenWeFollowUser(CoreDBInteractionsTestCase):
     @freezegun.freeze_time("2017-12-12 12:00:00", tz_offset=0)
     def runTest(self):
         user = common.get_sample_user(we_follow_user=False)
-        self.assertEquals(user.we_follow_user, False)
+        self.assertEqual(user.we_follow_user, False)
         self.repo_bot.update_user(user)
         self.client_mock.like.return_value = True
 
         self.user_controller.follow(instagram_id=user.instagram_id)
 
         user_loaded = self.repo_bot.find_user_by_username("username")
-        self.assertEquals(user.instagram_id, user_loaded.instagram_id)
-        self.assertEquals(user.username, user_loaded.username)
-        self.assertEquals(user.count_likes_we_gave, user_loaded.count_likes_we_gave)
-        self.assertEquals(user.dt_like, user_loaded.dt_like)
-        self.assertEquals(datetime.datetime(year=2017, month=12, day=12, hour=12, tzinfo=pytz.UTC),
+        self.assertEqual(user.instagram_id, user_loaded.instagram_id)
+        self.assertEqual(user.username, user_loaded.username)
+        self.assertEqual(user.count_likes_we_gave, user_loaded.count_likes_we_gave)
+        self.assertEqual(user.dt_like, user_loaded.dt_like)
+        self.assertEqual(datetime.datetime(year=2017, month=12, day=12, hour=12, tzinfo=pytz.UTC),
                           user_loaded.dt_follow)
-        self.assertEquals(user.dt_unfollow, user_loaded.dt_unfollow)
-        self.assertEquals(user.url, user_loaded.url)
-        self.assertEquals(user.count_shared_media, user_loaded.count_shared_media)
-        self.assertEquals(user.count_follows, user_loaded.count_follows)
-        self.assertEquals(user.count_followed_by, user_loaded.count_followed_by)
-        self.assertEquals(True, user_loaded.we_follow_user)
-        self.assertEquals(user.user_follows_us, user_loaded.user_follows_us)
+        self.assertEqual(user.dt_unfollow, user_loaded.dt_unfollow)
+        self.assertEqual(user.url, user_loaded.url)
+        self.assertEqual(user.count_shared_media, user_loaded.count_shared_media)
+        self.assertEqual(user.count_follows, user_loaded.count_follows)
+        self.assertEqual(user.count_followed_by, user_loaded.count_followed_by)
+        self.assertEqual(True, user_loaded.we_follow_user)
+        self.assertEqual(user.user_follows_us, user_loaded.user_follows_us)
 
 
 class ItShouldUpdateUserWhenWeUnfollowUser(CoreDBInteractionsTestCase):
     @freezegun.freeze_time("2018-12-12 12:00:00", tz_offset=0)
     def runTest(self):
         user = common.get_sample_user(we_follow_user=True)
-        self.assertEquals(user.we_follow_user, True)
+        self.assertEqual(user.we_follow_user, True)
         self.repo_bot.update_user(user)
         self.client_mock.like.return_value = True
 
         self.user_controller.unfollow(instagram_id=user.instagram_id)
 
         user_loaded = self.repo_bot.find_user_by_username("username")
-        self.assertEquals(user.instagram_id, user_loaded.instagram_id)
-        self.assertEquals(user.username, user_loaded.username)
-        self.assertEquals(user.count_likes_we_gave, user_loaded.count_likes_we_gave)
-        self.assertEquals(user.dt_like, user_loaded.dt_like)
-        self.assertEquals(user.dt_follow, user_loaded.dt_follow)
-        self.assertEquals(datetime.datetime(year=2018, month=12, day=12, hour=12, tzinfo=pytz.UTC),
+        self.assertEqual(user.instagram_id, user_loaded.instagram_id)
+        self.assertEqual(user.username, user_loaded.username)
+        self.assertEqual(user.count_likes_we_gave, user_loaded.count_likes_we_gave)
+        self.assertEqual(user.dt_like, user_loaded.dt_like)
+        self.assertEqual(user.dt_follow, user_loaded.dt_follow)
+        self.assertEqual(datetime.datetime(year=2018, month=12, day=12, hour=12, tzinfo=pytz.UTC),
                           user_loaded.dt_unfollow)
-        self.assertEquals(user.url, user_loaded.url)
-        self.assertEquals(user.count_shared_media, user_loaded.count_shared_media)
-        self.assertEquals(user.count_follows, user_loaded.count_follows)
-        self.assertEquals(user.count_followed_by, user_loaded.count_followed_by)
-        self.assertEquals(False, user_loaded.we_follow_user)
-        self.assertEquals(user.user_follows_us, user_loaded.user_follows_us)
+        self.assertEqual(user.url, user_loaded.url)
+        self.assertEqual(user.count_shared_media, user_loaded.count_shared_media)
+        self.assertEqual(user.count_follows, user_loaded.count_follows)
+        self.assertEqual(user.count_followed_by, user_loaded.count_followed_by)
+        self.assertEqual(False, user_loaded.we_follow_user)
+        self.assertEqual(user.user_follows_us, user_loaded.user_follows_us)

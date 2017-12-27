@@ -54,6 +54,14 @@ class InstaBot:
         self.lfs_workflow = instabotpatrik.workflow.LfsWorkflow(user_controller=self.user_controller,
                                                                 media_controller=self.media_controller)
 
+        self.select_ratio = 0.55
+
+        logging.info("Created instabot. Unfollows per day:%d, LFS per day:%d.", self.unfollow_delay_sec,
+                     self.lfs_per_day_cap)
+        logging.info("Unfollow interval sec:%d, LFS interval sec:%d. ", self.unfollow_delay_sec, self.lfs_delay_sec)
+        logging.info("Sleep on non 2xx response: %d sec.", self.ban_sleep_time_sec)
+        logging.info("Ratio of randomly selected media batch for tag: %f.", self.select_ratio)
+
         self.current_tag = None
         self._stopped = False
 
@@ -105,7 +113,6 @@ class InstaBot:
 
     def run(self):
         logging.info("[INSTABOT] Starting bot with following configuration:")
-        # logging.info("[INSTABOT] Daily cap for like count:%d", self.like_per_day_cap)
         logging.info("[INSTABOT] Daily cap of LFS count:%d", self.lfs_per_day_cap)
         logging.info("[INSTABOT] Daily cap for unfollow count:%d", self.unfollow_per_day_cap)
 
@@ -118,8 +125,8 @@ class InstaBot:
                 our_username = self.login_controller.get_our_username()
                 medias = self.media_controller.get_recent_media_by_tag(tag=self.current_tag,
                                                                        excluded_owner_usernames=[our_username])
-                select_ratio = 0.55
-                medias = random.sample(medias, int(len(medias) * select_ratio))
+
+                medias = random.sample(medias, int(len(medias) * self.select_ratio))
 
                 logging.info("[INSTABOT] For tag %s was picked media: %s",
                              self.current_tag, [media.shortcode for media in medias])
@@ -131,12 +138,12 @@ class InstaBot:
                 logging.critical("Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
                                  "Botting might had been detected. Will sleep approximately %d seconds now.",
                                  e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
-                instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=30)
+                instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
                 return False
             except Exception as e:
                 logging.error(e, exc_info=True)
                 logging.error("Something went wrong. Will sleep 60 seconds")
-                instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=1)
+                instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=10)
 
         logging.info("Bot is stopped.")
 

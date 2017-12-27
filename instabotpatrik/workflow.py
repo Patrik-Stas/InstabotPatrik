@@ -19,20 +19,41 @@ class LfsWorkflow:
         self.liking_session_like_delay_min_sec = 3
         self.liking_session_like_delay_max_sec = 20
 
-        self.dt_like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=24 * 2)
-        self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
-        self.dt_unfollow_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=24 * 7)
+        self.min_like_delay_hours = 48
+        self.min_follow_delay_hours = 48
+        self.min_unfollow_delay_hours = 24 * 10  # start LFS again no sooner than 10 days after last unfollow
+        self.min_count_followed_by = 6
+        self.max_count_followed_by = 1500
 
-        self.followed_by_filter = instabotpatrik.filter.UserFollowedByCountFilter(min_followed_by=6,
-                                                                                  max_followed_by=1500)
-        self.follows_filter = instabotpatrik.filter.UserFollowsCountFilter(min_follows=6, max_follows=1200)
+        self.min_count_follows = 6
+        self.max_count_follows = 1200
+
+        self.dt_like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=self.min_like_delay_hours)
+        self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=self.min_follow_delay_hours)
+        self.dt_unfollow_filter = instabotpatrik.filter.LastUnfollowFilter(
+            more_than_hours_ago=self.min_unfollow_delay_hours)
+
+        self.followed_by_count_filter = instabotpatrik.filter.UserFollowedByCountFilter(
+            min_followed_by=self.min_count_followed_by,
+            max_followed_by=self.max_count_followed_by)
+        self.follows_count_filter = instabotpatrik.filter.UserFollowsCountFilter(min_follows=self.min_count_follows,
+                                                                                 max_follows=self.max_count_follows)
+
+        logging.info("[LFS] Workflow created. Like time filter")
+        logging.info("[LFS] Using filter: min like delay: %d hours.", self.min_like_delay_hours)
+        logging.info("[LFS] Using filter: min follow delay: %d hours.", self.min_follow_delay_hours)
+        logging.info("[LFS] Using filter: min unfollow delay: %d hours.", self.min_unfollow_delay_hours)
+        logging.info("[LFS] Using filter: Followed by count. Min: %d. Max: %d", self.min_count_followed_by,
+                     self.max_count_followed_by)
+        logging.info("[LFS] Using filter: Follows count. Min: %d. Max: %d", self.min_count_follows,
+                     self.max_count_follows)
 
     def is_approved_for_lfs(self, user):
         return self.dt_follow_filter.passes(user) \
                and self.dt_unfollow_filter.passes(user) \
                and self.dt_like_filter.passes(user) \
-               and self.followed_by_filter.passes(user) \
-               and self.follows_filter.passes(user)
+               and self.followed_by_count_filter.passes(user) \
+               and self.follows_count_filter.passes(user)
 
     def _wait_before_new_like(self, media_owner):
         sleepsec = random.randint(self.liking_session_like_delay_min_sec, self.liking_session_like_delay_max_sec)
@@ -87,11 +108,13 @@ class LfsWorkflow:
 class UnfollowWorkflow:
     def __init__(self, user_controller):
         """
-        :param core:
-        :type core: instabotpatrik.core.UserController
+        :param user_controller:
+        :type user_controller: instabotpatrik.core.UserController
         """
         self.user_controller = user_controller
-        self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
+        self.min_follow_delay_hours = 48
+        logging.info("[LFS] Using filter: min follow delay = %d hours.", self.min_follow_delay_hours)
+        self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=self.min_follow_delay_hours)
 
     def find_user_to_unfollow(self):
         followed_users = self.user_controller.get_followed_users()
@@ -109,36 +132,3 @@ class UnfollowWorkflow:
             self.user_controller.unfollow(instagram_id=user_to_unfollow)
         else:
             logging.info("No suitable user for unfollow was found")
-
-    # def handle_single_media_like(self, media):
-    #     logging.info("Handling likes for media %s", media.shortcode)
-    #     if self.action_manager.is_action_allowed_now("like"):
-    #         return
-    #     if self.strategy_like.should_like(media):
-    #         if self.core.like(media):
-    #             self.action_manager.allow_action_after_seconds('like', self.like_delay_sec)
-
-    # def like_recent_media(self, user, likes_min=1, likes_max=5):
-    #     """
-    #     Likes randomly picked recent medias, including for sure the very last media posted.
-    #     :param user:
-    #     :type user: instabotpatrik.model.InstagramUser
-    #     :param likes_min:
-    #     :param likes_max:
-    #     :return:
-    #     """
-    #     give_likes = random.randint(likes_min, likes_max)
-    #     media_to_like = random.sample(user.recent_media, give_likes)
-    #     if user.recent_media[0] not in media_to_like:
-    #         media_to_like[0] = user.recent_media[0]
-    #     likes_given_count = 0
-    #     for media in media_to_like:
-    #         if self.like(media):
-    #             likes_given_count += 1
-    #     return likes_given_count
-
-    # def handle_user_follow(self, user):
-    #     logging.info("Handling follow for user %s", user.username)
-    #     if self.action_manager.is_action_allowed_now("follow") and self.strategy_follow.should_follow(user):
-    #         if self.core.follow(user):
-    #             self.action_manager.allow_action_after_seconds('follow', self.follow_delay_sec)
