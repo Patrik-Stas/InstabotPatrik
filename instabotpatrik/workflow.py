@@ -18,15 +18,21 @@ class LfsWorkflow:
         self.lfs_likes_for_user_max = 4
         self.liking_session_like_delay_min_sec = 3
         self.liking_session_like_delay_max_sec = 20
+
         self.dt_like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=24 * 2)
         self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
         self.dt_unfollow_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=24 * 7)
-        # TODO: We need to add filters for follow/is followed by counts
+
+        self.followed_by_filter = instabotpatrik.filter.UserFollowedByCountFilter(min_followed_by=6,
+                                                                                  max_followed_by=1500)
+        self.follows_filter = instabotpatrik.filter.UserFollowsCountFilter(min_follows=6, max_follows=1200)
 
     def is_approved_for_lfs(self, user):
         return self.dt_follow_filter.passes(user) \
                and self.dt_unfollow_filter.passes(user) \
-               and self.dt_like_filter.passes(user)
+               and self.dt_like_filter.passes(user) \
+               and self.followed_by_filter.passes(user) \
+               and self.follows_filter.passes(user)
 
     def _wait_before_new_like(self, media_owner):
         sleepsec = random.randint(self.liking_session_like_delay_min_sec, self.liking_session_like_delay_max_sec)
