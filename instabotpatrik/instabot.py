@@ -39,13 +39,12 @@ class InstaBot:
         self.bot_start = datetime.datetime.now()
         self.strategy_tag_selection = strategy_tag_selection
 
-        self.like_per_day_cap = 600
-        self.follow_per_day_cap = 200
-        self.unfollow_per_day_cap = 300
-        self.lfs_per_day_cap = 500  # lfs = like-follow-session
+        # self.follow_per_day_cap = 150
+        self.unfollow_per_day_cap = 150
+        self.lfs_per_day_cap = 100  # lfs = like-follow-session
 
         self.time_in_day = 24 * 60 * 60
-        self.ban_sleep_time_sec = 2 * 60 * 60  # If it seems like you'r banned - will sleep
+        self.ban_sleep_time_sec = 2 * 60 * 60  # how long sleep if we get non 2xx response
 
         self.lfs_delay_sec = self.time_in_day / self.lfs_per_day_cap
         self.unfollow_delay_sec = self.time_in_day / self.unfollow_per_day_cap
@@ -106,8 +105,8 @@ class InstaBot:
 
     def run(self):
         logging.info("[INSTABOT] Starting bot with following configuration:")
-        logging.info("[INSTABOT] Daily cap for like count:%d", self.like_per_day_cap)
-        logging.info("[INSTABOT] Daily cap for follow count:%d", self.follow_per_day_cap)
+        # logging.info("[INSTABOT] Daily cap for like count:%d", self.like_per_day_cap)
+        logging.info("[INSTABOT] Daily cap of LFS count:%d", self.lfs_per_day_cap)
         logging.info("[INSTABOT] Daily cap for unfollow count:%d", self.unfollow_per_day_cap)
 
         self.login_controller.login()

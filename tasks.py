@@ -4,14 +4,6 @@ from invoke import task
 import json
 from string import Template
 
-db_init_prod_path = "db_prod_init.js"
-db_init_e2e_path = "testse2e/db_e2e_init.js"
-db_init_template_path = "templates/db_init.template.js"
-db_template_vars_path = "templates/db_init.vars.json"
-
-mongo_host = "localhost"
-mongo_port = 27017
-
 
 @task
 def test_api(ctx):
@@ -53,40 +45,39 @@ def generate_coverage_report(ctx):
 def show_coverage(ctx):
     ctx.run('open htmlcov/index.html')
 
-def generate_db_init_e2e():
-    var_dict = _get_env_config('e2e')
-    interpolate_template(db_init_template_path, var_dict, db_init_e2e_path)
+
+@task()
+def generate_db_init_e2e(ctx, template_file):
+    f_generate_db_init(template_file=template_file,
+                       var_file="testse2e/dbinit_e2e.vars.json",
+                       target_file="testse2e/db_e2e_init.js")
 
 
-def generate_db_init_prod():
-    var_dict = _get_env_config('prod')
-    interpolate_template(db_init_template_path, var_dict, db_init_prod_path)
+@task()
+def generate_db_init(ctx, template_file, var_file, target_file):
+    f_generate_db_init(template_file=template_file,
+                       var_file=var_file,
+                       target_file=target_file)
 
 
-def _get_env_config(env_name):
-    with open(db_template_vars_path, 'r') as var_file:
-        json_data = json.loads(var_file.read())
-    return json_data[env_name]
+def f_generate_db_init(template_file, var_file, target_file):
+    """
+    :param ctx: invoke framework context
+    :param template_file: path to DB-initialization template file
+    :param var_file:  path to file with variable to be interpolated in template file
+    :param target_file: path to file to which the interpolated template should be rendered
+    :return:
+    """
+    print("will generate %s %s %s" % (template_file, var_file, target_file))
+    with open(var_file, 'r') as f:
+        json_data = json.loads(f.read())
+    interpolate_template(template_file_path=template_file,
+                         interpolation_dictionary=json_data["db_init_root"],
+                         destination_path=target_file)
 
 
 @task
-def generate_db_init(ctx):
-    generate_db_init_prod()
-    generate_db_init_e2e()
-
-
-@task
-def init_db(ctx):
-    ctx.run("mongo -host '%s' -port %d '%s'" % (mongo_host, mongo_port, db_init_prod_path))
-
-
-@task
-def clean(ctx):
-    ctx.run("rm '%s'" % db_init_prod_path)
-
-
-@task
-def clean_db(ctx):
+def clean_db(ctx, mongo_host, mongo_port):
     mongo_drop_script = 'db = db.getSiblingDB("instabot"); db.dropDatabase()'
     command = "mongo - -host '%s' -port %d --eval '%s'" % (mongo_host, mongo_port, mongo_drop_script)
     print(command)

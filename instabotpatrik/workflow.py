@@ -21,6 +21,7 @@ class LfsWorkflow:
         self.dt_like_filter = instabotpatrik.filter.LastLikeFilter(more_than_hours_ago=24 * 2)
         self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=24 * 2)
         self.dt_unfollow_filter = instabotpatrik.filter.LastUnfollowFilter(more_than_hours_ago=24 * 7)
+        # TODO: We need to add filters for follow/is followed by counts
 
     def is_approved_for_lfs(self, user):
         return self.dt_follow_filter.passes(user) \
