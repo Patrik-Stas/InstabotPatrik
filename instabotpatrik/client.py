@@ -25,6 +25,9 @@ class InstagramLoginException(Exception):
         self.reason = reason
 
 
+# TODO : Need to wrap mappings with try/except and raise some sort of mapping/parsing exceptions ... for example
+# when we try to use some field in Instagram response which doesn't exist (might be optional)
+
 class InstagramClient:
     url = 'https://www.instagram.com/'
 
@@ -369,7 +372,8 @@ class InstagramClient:
                                                                shortcode=dict_media['code'],
                                                                owner_id=dict_media['owner']['id'],
                                                                owner_username=username,
-                                                               caption=dict_media['caption'],
+                                                               caption=dict_media['caption'] if dict_media[
+                                                                   'caption'] else None,
                                                                like_count=dict_media['likes']['count'])
             medias.append(recent_media)
         return medias

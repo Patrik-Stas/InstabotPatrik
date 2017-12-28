@@ -102,6 +102,10 @@ class InstaBot:
                 # ----- WAIT TILL NEXT ACTION------
                 info = self.action_manager.seconds_left_until_some_action_possible()
                 logging.info("Next possible action will be %s in %d seconds", info['action_name'], info['sec_left'])
+                logging.info("Time left till next liking_session %d"
+                             % self.action_manager.seconds_left_until_action_possible("liking_session"))
+                logging.info("Time left till next unfollow %d"
+                             % self.action_manager.seconds_left_until_action_possible("unfollow"))
                 instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 3, plusminus=3)
 
             except instabotpatrik.client.InstagramResponseException as e:

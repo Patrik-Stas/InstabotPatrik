@@ -70,9 +70,9 @@ class ActionManager:
 
         min_sec_left = 1000000.0
         min_action_name = None
-        for action_name, timestamp in self.actions_timestamps.items():
-            action_sec_left = self.seconds_left_until_action_possible(action_name)
+        for action in self.allowed_actions:
+            action_sec_left = self.seconds_left_until_action_possible(action)
             if action_sec_left < min_sec_left:
                 min_sec_left = action_sec_left
-                min_action_name = action_name
+                min_action_name = action
         return {"sec_left": min_sec_left, "action_name": min_action_name}
