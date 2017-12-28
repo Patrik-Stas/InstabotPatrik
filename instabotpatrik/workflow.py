@@ -4,6 +4,8 @@ import instabotpatrik
 import time
 
 
+# TODO :We should handle situation when we pick media which we have already liked. Let's say LFS should do 2 likes, it
+# picks random media. But if these 2 media was already liked before, it won't right now try to pick other 2. Fix this
 class LfsWorkflow:
     def __init__(self, user_controller, media_controller):
         """
