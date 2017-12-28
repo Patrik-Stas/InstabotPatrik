@@ -368,12 +368,12 @@ class InstagramClient:
         dict_medias = list(r_object['user']['media']['nodes'])
         medias = []
         for dict_media in dict_medias:
+            caption = dict_media['caption'] if 'caption' in dict_media else None
             recent_media = instabotpatrik.model.InstagramMedia(instagram_id=dict_media['id'],
                                                                shortcode=dict_media['code'],
                                                                owner_id=dict_media['owner']['id'],
                                                                owner_username=username,
-                                                               caption=dict_media['caption'] if dict_media[
-                                                                   'caption'] else None,
+                                                               caption=caption,
                                                                like_count=dict_media['likes']['count'])
             medias.append(recent_media)
         return medias
@@ -386,12 +386,14 @@ class InstagramClient:
         """
         r_object = self.get_request(self.url_media_detail % shortcode_media)
         shortcode_media = r_object['graphql']['shortcode_media']
+
+        caption = shortcode_media['edge_media_to_caption']['edges'][0]['node']['text'] if \
+        shortcode_media['edge_media_to_caption']['edges'] else None
         return instabotpatrik.model.InstagramMedia(instagram_id=shortcode_media['id'],
                                                    shortcode=shortcode_media['shortcode'],
                                                    owner_id=shortcode_media['owner']['id'],
                                                    owner_username=shortcode_media['owner']['username'],
-                                                   caption=shortcode_media['edge_media_to_caption']
-                                                   ['edges'][0]['node']['text'],
+                                                   caption=caption,
                                                    is_liked=shortcode_media['viewer_has_liked'],
                                                    like_count=shortcode_media['edge_media_preview_like']['count'])
 
