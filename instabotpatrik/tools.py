@@ -49,6 +49,7 @@ class ActionManager:
             raise UnknownActionException(action_name)
 
     def allow_action_after_seconds(self, action_name, seconds):
+        logging.info("Will allow %s after %d seconds", action_name, seconds)
         if action_name in self.allowed_actions:
             self.actions_timestamps[action_name] = get_utc_datetime() + datetime.timedelta(seconds=seconds)
         else:
@@ -59,8 +60,9 @@ class ActionManager:
             if not self.action_limit_was_registered(action_name):
                 return 0
             else:
-                left_seconds = (self.actions_timestamps[action_name] - get_utc_datetime()).seconds
-                return 0 if 0 >= left_seconds else left_seconds
+                now = get_utc_datetime()
+                allowed_time = self.actions_timestamps[action_name]
+                return 0 if now >= allowed_time else (allowed_time - now).seconds
         else:
             raise UnknownActionException(action_name)
 
