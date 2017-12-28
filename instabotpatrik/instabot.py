@@ -137,13 +137,13 @@ class InstaBot:
 
                 self.schedule_and_execute_actions_for_medias(medias)
 
+            # TODO: Dont sleep on 404, the user probably just deleted the media/changed username
             except instabotpatrik.client.InstagramResponseException as e:
                 logging.critical(e, exc_info=True)
                 logging.critical("Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
                                  "Botting might had been detected. Will sleep approximately %d seconds now.",
                                  e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
                 instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
-                return False
             except Exception as e:
                 logging.error(e, exc_info=True)
                 logging.error("Something went wrong. Will sleep 60 seconds")
