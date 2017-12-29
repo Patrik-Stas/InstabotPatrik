@@ -16,6 +16,9 @@ import random
 
 # TODO: annotations for scheduling... anotate method with @allowAfter(action='like', sec=300) ... and if the like was
 # succesfull, then this annotation will asure to setup action manager to allow like only after 300 seconds
+
+# TODO: Shall we add follow timestamp to user if we find out we follow him, but missing out dt_follow? (Happens if user
+# is followed by other means than by bot (by instagram account owner directly)
 class InstaBot:
 
     def __init__(self,
