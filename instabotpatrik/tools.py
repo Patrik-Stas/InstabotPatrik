@@ -62,7 +62,7 @@ class ActionManager:
             else:
                 now = get_utc_datetime()
                 allowed_time = self.actions_timestamps[action_name]
-                return 0 if now >= allowed_time else (allowed_time - now).seconds
+                return 0 if now >= allowed_time else (allowed_time - now).total_seconds()
         else:
             raise UnknownActionException(action_name)
 

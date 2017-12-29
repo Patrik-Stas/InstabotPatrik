@@ -90,22 +90,38 @@ class UserFollowedByCountFilter:
                (self.min_followed_by, self.max_followed_by, user.count_followed_by)
 
 
-class UserNotFollowedByUsFilter:
+class UserIsNotFollowingUs:
 
     @log_filter_result
     def passes(self, user):
         """
         :type user: instabotpatrik.model.InstagramUser
+        :return: True if user is not following us. False if he follows us.
+        :rtype: bool
+        """
+        _check_if_user_is_fully_known(user)
+        return not user.user_follows_us
+
+    def get_filter_result_as_string(self, user):
+        return "This user is not following us." if not user.user_follows_us \
+            else "This user follows us."
+
+
+class UserFollowedByUsFilter:
+
+    @log_filter_result
+    def passes(self, user):
+        """
+        :type user: instabotpatrik.model.InstagramUser
+        :return: True if we are following the user. False if we don't.
         :rtype: bool
         """
         _check_if_user_is_fully_known(user)
         return user.we_follow_user
-        # TODO: we could also figure it out base on folow / unfollow timestamps - that would be necessary in case
-        # we started following the user without requesting details of his profile
 
     def get_filter_result_as_string(self, user):
-        return "We follow this user" if user.we_follow_user \
-            else "We don't follow this user."
+        return "We are following this user" if user.we_follow_user \
+            else "We are not following this user."
 
 
 class LastUnfollowFilter:
@@ -129,7 +145,7 @@ class LastUnfollowFilter:
         now = instabotpatrik.tools.get_utc_datetime()
         ts = user.dt_unfollow
         r = now - ts
-        return (instabotpatrik.tools.get_utc_datetime() - user.dt_unfollow).seconds
+        return (instabotpatrik.tools.get_utc_datetime() - user.dt_unfollow).total_seconds()
 
     def get_filter_result_as_string(self, user):
         if user.dt_unfollow is None:
@@ -150,14 +166,16 @@ class LastFollowFilter:
         :type user: instabotpatrik.model.InstagramUser
         :rtype: bool
         """
-        if user.dt_follow is None:
+        if user.dt_follow is None: #might be someone who we followed manually outside of the bot. In that case, asume the threshold time has passed
             return True
         else:
-            return self._get_seconds_passed(user) > self.minimal_delay_sec
+            sec_passed = self._get_seconds_passed(user)
+            return sec_passed > self.minimal_delay_sec
 
     @staticmethod
     def _get_seconds_passed(user):
-        return (instabotpatrik.tools.get_utc_datetime() - user.dt_follow).seconds
+        now = instabotpatrik.tools.get_utc_datetime()
+        return (instabotpatrik.tools.get_utc_datetime() - user.dt_follow).total_seconds()
 
     def get_filter_result_as_string(self, user):
         if user.dt_follow is None:
@@ -186,7 +204,7 @@ class LastLikeFilter:
 
     @staticmethod
     def _get_seconds_passed(user):
-        return (instabotpatrik.tools.get_utc_datetime() - user.dt_like).seconds
+        return (instabotpatrik.tools.get_utc_datetime() - user.dt_like).total_seconds()
 
     def get_filter_result_as_string(self, user):
         if user.dt_like is None:

@@ -77,6 +77,8 @@ class LfsWorkflow:
         """
         logging.info("[LFS] Starting: User ID:%s Username:%s. Media shortcode %s",
                      media_owner.instagram_id, media_owner.username, media.shortcode)
+        if not media_owner.is_fully_known():
+            media_owner = self.user_controller.get_fresh_user(username=media_owner.username)
         # give like to "found" media he posted
         self.media_controller.like(media_id=media.instagram_id, shortcode=media.shortcode)
 
@@ -102,6 +104,11 @@ class LfsWorkflow:
         logging.info("[LFS] Liking finished, let's follow him if we don't.")
         if media_owner.we_follow_user is False:
             self.user_controller.follow(instagram_id=media_owner.instagram_id)
+        elif media_owner.we_follow_user is True:
+            logging.info("[LFS] We already follow this user.")
+        else:
+            raise instabotpatrik.model.InsufficientInformationException("Expected to know information "
+                                                                        "whether we follow this user.")
 
         logging.info("[LFS] Finished. [user_id::%s username:%s] Gave %d likes.",
                      media_owner.instagram_id, media_owner.username, likes_given)
@@ -117,20 +124,27 @@ class UnfollowWorkflow:
         self.min_follow_delay_hours = 48
         logging.info("[LFS] Using filter: min follow delay = %d hours.", self.min_follow_delay_hours)
         self.dt_follow_filter = instabotpatrik.filter.LastFollowFilter(more_than_hours_ago=self.min_follow_delay_hours)
+        self.user_not_following_us_filter = instabotpatrik.filter.UserIsNotFollowingUs()
+        self.user_followed_by_us = instabotpatrik.filter.UserFollowedByUsFilter()
 
     def find_user_to_unfollow(self):
         followed_users = self.user_controller.get_followed_users()
 
         for user in followed_users:
-            if self.dt_follow_filter.passes(user):
-                self.user_controller.get_fresh_user(username=user.username)
-                if user.user_follows_us is False:
-                    return user
+            if self.is_approved_for_unfollow(user):
+                return user
         return None
+
+    def is_approved_for_unfollow(self, user):
+        if self.dt_follow_filter.passes(user):
+            self.user_controller.get_fresh_user(username=user.username)
+            return self.user_followed_by_us.passes(user) and self.user_not_following_us_filter.passes(user)
+        else:
+            return False
 
     def run(self):
         user_to_unfollow = self.find_user_to_unfollow()
         if user_to_unfollow is not None:
-            self.user_controller.unfollow(instagram_id=user_to_unfollow)
+            self.user_controller.unfollow(instagram_id=user_to_unfollow.instagram_id)
         else:
             logging.info("No suitable user for unfollow was found")

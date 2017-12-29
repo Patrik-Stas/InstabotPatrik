@@ -25,7 +25,7 @@ class ItShouldCalculateMinimalWaitingTime(unittest.TestCase):
         manager.allow_action_after_seconds("unfollow", 20)
         time.sleep(0.8)
         self.assertEqual("liking_session", manager.seconds_left_until_some_action_possible()['action_name'])
-        self.assertAlmostEqual(9, manager.seconds_left_until_some_action_possible()['sec_left'], delta=0.1)
+        self.assertAlmostEqual(9, manager.seconds_left_until_some_action_possible()['sec_left'], delta=0.3)
 
 
 class ItShouldReturnTimezoneAwareUTCDateTime(unittest.TestCase):
