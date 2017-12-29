@@ -160,12 +160,13 @@ class InstaBot:
             # TODO: Dont sleep on 404, the user probably just deleted the media/changed username
             except instabotpatrik.client.InstagramResponseException as e:
                 if e.return_code is 404:
-                    self.logger.critical(e, exc_info=True)
-                    self.logger.critical(
+                    self.logger.warning(e, exc_info=True)
+                    self.logger.warning(
                         "Request [%s] %s returned code: %d. You should investigate when is this happening."
-                        "Deleted media? Changed username? Will sleep approximately %d seconds now.",
-                        e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
-                    instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec / 2, plusminus=120)
+                        "Response body: \n%d\n\nMaybe deleted media? Changed username? Will sleep approximately %d "
+                        "seconds now.",
+                        e.request_type, e.request_address, e.return_code, e.response_body, self.ban_sleep_time_sec)
+                    instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec / 5, plusminus=120)
                 else:
                     self.logger.critical(e, exc_info=True)
                     self.logger.critical(
