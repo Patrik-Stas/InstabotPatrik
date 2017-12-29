@@ -137,6 +137,7 @@ class UnfollowWorkflow:
 
     def is_approved_for_unfollow(self, user):
         if self.dt_follow_filter.passes(user):
+            logging.info("Will asure we have fresh information about this user to decide whether we should unfollow...")
             self.user_controller.get_fresh_user(username=user.username)
             return self.user_followed_by_us.passes(user) and self.user_not_following_us_filter.passes(user)
         else:
