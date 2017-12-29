@@ -2,8 +2,12 @@
 
 import unittest
 import unittest.mock
-
 from testsUnit.context import instabotpatrik
+import logging
+
+logging.getLogger().setLevel(30)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class MediaControllerTestCase(unittest.TestCase):

@@ -11,7 +11,8 @@ import subprocess
 import requests
 
 logging.getLogger().setLevel(20)
-logging.basicConfig(format='[%(levelname)s] [%(asctime)s] %(message)s', datefmt='%m/%d/%Y-%H:%M:%S')
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class TestBasicScenario(unittest.TestCase):
@@ -28,20 +29,20 @@ class TestBasicScenario(unittest.TestCase):
                 print(exc)
 
     def drop_e2e_database(self):
-        logging.info("E2E tearDown DB cleanup. Dropping database %s", self.config.get_db_name())
+        self.logger.info("E2E tearDown DB cleanup. Dropping database %s", self.config.get_db_name())
         self.mongo_client.drop_database(self.config.get_db_name())
 
     def init_e2e_database(self):
-        logging.info("Going to intialize E2E testing database.")
+        self.logger.info("Going to intialize E2E testing database.")
         bash_command = "mongo --host %s --port %s %s" % \
                        (self.config.get_db_host(),
                         self.config.get_db_port(),
                         self.get_path_to_file_in_directory_of_this_file("db_e2e_init.js"))
-        logging.info("Going to run bash command: %s", bash_command)
+        self.logger.info("Going to run bash command: %s", bash_command)
         process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
-        logging.info("Output from running e2e DB init script:\n%s" % output)
-        logging.error("Errors from running e2e DB init script:\n%s" % output)
+        self.logger.info("Output from running e2e DB init script:\n%s" % output)
+        self.logger.error("Errors from running e2e DB init script:\n%s" % output)
         if error is not None:
             raise Exception("Database initialization failed.")
         else:
@@ -49,6 +50,8 @@ class TestBasicScenario(unittest.TestCase):
 
     def setUp(self):
         print("Assure DB doesn't exists on start")
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.config = common.get_config()
         self.mongo_client = pymongo.MongoClient(self.config.get_db_host(), self.config.get_db_port())
 
@@ -65,16 +68,16 @@ class TestBasicScenario(unittest.TestCase):
         )
         bot_runner = instabotpatrik.runner.BasicSetup(cfg=self.config, api_client=self.client)
 
-        logging.info("Let's login")
+        self.logger.info("Let's login")
         bot_runner.account_controller.login()
 
         time.sleep(3)
-        logging.info("Let's find some media by tag")
+        self.logger.info("Let's find some media by tag")
         medias = bot_runner.media_controller.get_recent_media_by_tag("nice")
         user_last_media1 = medias[0]
 
         time.sleep(3)
-        logging.info("Let's get user which posted the last media for the tag")
+        self.logger.info("Let's get user which posted the last media for the tag")
         owner = bot_runner.user_controller.get_media_owner(media_shortcode=user_last_media1.shortcode, asure_fresh_data=True)
         bot_runner.api_client.unfollow(user_id=owner.instagram_id)  # send raw unfollow api call, just to make sure.
 
@@ -83,13 +86,13 @@ class TestBasicScenario(unittest.TestCase):
         self.assertIsNone(owner.dt_unfollow)
 
         time.sleep(3)
-        logging.info("Let's get recent media for this user")
+        self.logger.info("Let's get recent media for this user")
         users_medias = bot_runner.media_controller.get_recent_media_for_user(owner.username)
         self.assertGreaterEqual(len(users_medias), 1)
         self.assertLessEqual(len(users_medias), 50)
 
         time.sleep(3)
-        logging.info("Let's give a like for first media of this user")
+        self.logger.info("Let's give a like for first media of this user")
 
         user_last_media1 = users_medias[0]
         datetime_before_like1 = instabotpatrik.tools.get_utc_datetime()
@@ -112,7 +115,7 @@ class TestBasicScenario(unittest.TestCase):
         self.assertTrue(datetime_before_like1 <= user_after_like.dt_like <= datetime_after_like1)
 
         time.sleep(3)
-        logging.info("Let's give a like for second media of this user")
+        self.logger.info("Let's give a like for second media of this user")
 
         user_last_media2 = users_medias[1]
         datetime_before_like2 = instabotpatrik.tools.get_utc_datetime()
@@ -131,7 +134,7 @@ class TestBasicScenario(unittest.TestCase):
         self.assertEqual(2, user_after_like2.count_likes_we_gave)
 
         time.sleep(3)
-        logging.info("Let's follow the user now")
+        self.logger.info("Let's follow the user now")
 
         datetime_before_follow = instabotpatrik.tools.get_utc_datetime()
         bot_runner.user_controller.follow(instagram_id=owner.instagram_id)
@@ -146,7 +149,7 @@ class TestBasicScenario(unittest.TestCase):
         self.assertEquals(2, user_after_like2.count_likes_we_gave)
 
         time.sleep(3)
-        logging.info("Let's unfollow the user now")
+        self.logger.info("Let's unfollow the user now")
 
         datetime_before_unfollow = instabotpatrik.tools.get_utc_datetime()
         bot_runner.user_controller.unfollow(instagram_id=owner.instagram_id)

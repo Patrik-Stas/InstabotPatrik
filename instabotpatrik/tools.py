@@ -21,8 +21,9 @@ def get_utc_datetime():
 
 
 def go_sleep(duration_sec, plusminus):
+    logger = logging.getLogger("go_sleep")
     sleep_duration = duration_sec if plusminus < 0.01 else duration_sec + (plusminus * random.uniform(-1, 1))
-    logging.info("Going to sleep for %f seconds", sleep_duration)
+    logger.info("Going to sleep for %f seconds", sleep_duration)
     time.sleep(sleep_duration)
 
 
@@ -31,6 +32,7 @@ class ActionManager:
     def __init__(self):
         self.allowed_actions = ["unfollow", "liking_session"]
         self.actions_timestamps = {}
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def action_limit_was_registered(self, action):
         return action in self.actions_timestamps.keys()
@@ -40,7 +42,7 @@ class ActionManager:
             if action_name in self.actions_timestamps.keys():
                 allowed = get_utc_datetime() >= self.actions_timestamps[action_name]
                 if not allowed:
-                    logging.info("Action '%s' not allowed now. Will be possible after %f seconds", action_name,
+                    self.logger.info("Action '%s' not allowed now. Will be possible after %f seconds", action_name,
                                  self.seconds_left_until_action_possible(action_name))
                 return allowed
             else:
@@ -49,7 +51,7 @@ class ActionManager:
             raise UnknownActionException(action_name)
 
     def allow_action_after_seconds(self, action_name, seconds):
-        logging.info("Will allow %s after %d seconds", action_name, seconds)
+        self.logger.info("Will allow %s after %d seconds", action_name, seconds)
         if action_name in self.allowed_actions:
             self.actions_timestamps[action_name] = get_utc_datetime() + datetime.timedelta(seconds=seconds)
         else:

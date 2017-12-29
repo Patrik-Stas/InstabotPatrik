@@ -35,6 +35,8 @@ class InstaBot:
         :type login_controller: instabotpatrik.core.AccountController
         """
 
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.media_controller = media_controller
         self.user_controller = user_controller
         self.login_controller = login_controller
@@ -59,12 +61,12 @@ class InstaBot:
 
         self.select_ratio = 0.55
 
-        logging.info("[INSTABOT] Created instabot. Unfollows per day:%d, LFS per day:%d.", self.unfollow_delay_sec,
+        self.logger.info("Created instabot. Unfollows per day:%d, LFS per day:%d.", self.unfollow_delay_sec,
                      self.lfs_per_day_cap)
-        logging.info("[INSTABOT] Unfollow interval sec:%d, LFS interval sec:%d. ", self.unfollow_delay_sec,
+        self.logger.info("Unfollow interval sec:%d, LFS interval sec:%d. ", self.unfollow_delay_sec,
                      self.lfs_delay_sec)
-        logging.info("[INSTABOT] Sleep on non 2xx response: %d sec.", self.ban_sleep_time_sec)
-        logging.info("[INSTABOT] Ratio of randomly selected media batch for tag: %f.", self.select_ratio)
+        self.logger.info("Sleep on non 2xx response: %d sec.", self.ban_sleep_time_sec)
+        self.logger.info("Ratio of randomly selected media batch for tag: %f.", self.select_ratio)
 
         self.current_tag = None
         self._stopped = False
@@ -80,11 +82,11 @@ class InstaBot:
         """
         while len(medias) > 0 and self._stopped is False:
             try:
-                logging.info("[INSTABOT] Handle media one by one by one: Some action should be possible now.")
+                self.logger.info("Handle media one by one by one: Some action should be possible now.")
 
                 # ----- IF SCHEDULED: UNFOLLOW ------
                 if self.action_manager.is_action_allowed_now("unfollow"):
-                    logging.info("[INSTABOT] Going to unfollow someone.")
+                    self.logger.info("Going to unfollow someone.")
                     try:
                         self.unfollow_workflow.run()
                     finally:
@@ -93,7 +95,7 @@ class InstaBot:
                 # ----- IF SCHEDULED: LIKING SESSIONS------
                 if self.action_manager.is_action_allowed_now("liking_session"):
                     media = medias.pop()
-                    logging.info("[INSTABOT] Going to check if we can do LFS on media %s", media.shortcode)
+                    self.logger.info("Going to check if we can do LFS on media %s", media.shortcode)
 
                     # When tag is used by single owner, who is also not acceptable owner for LFS,
                     # we might get into a loop because all media codes we get are his. We should probably count
@@ -107,7 +109,7 @@ class InstaBot:
                     media_owner = self.user_controller.get_media_owner(media_shortcode=media.shortcode,
                                                                        asure_fresh_data=True)  # explore users profile
                     if self.lfs_workflow.is_approved_for_lfs(media_owner):
-                        logging.info("[INSTABOT] Starting LFS on owner of media %s", media.shortcode)
+                        self.logger.info("Starting LFS on owner of media %s", media.shortcode)
                         try:
                             self.lfs_workflow.run(media, media_owner)
                         finally:
@@ -115,69 +117,69 @@ class InstaBot:
 
                 # ----- WAIT TILL NEXT ACTION------
                 info = self.action_manager.seconds_left_until_some_action_possible()
-                logging.info("[INSTABOT] Next possible action will be %s in %d seconds", info['action_name'],
+                self.logger.info("Next possible action will be %s in %d seconds", info['action_name'],
                              info['sec_left'])
-                logging.info("[INSTABOT] Time left till next liking_session %d"
+                self.logger.info("Time left till next liking_session %d"
                              % self.action_manager.seconds_left_until_action_possible("liking_session"))
-                logging.info("[INSTABOT] Time left till next unfollow %d"
+                self.logger.info("Time left till next unfollow %d"
                              % self.action_manager.seconds_left_until_action_possible("unfollow"))
                 instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 20, plusminus=20)
 
             except instabotpatrik.client.InstagramResponseException as e:
                 raise e
             except Exception as e:
-                logging.error(e, exc_info=True)
-                logging.error("Something went wrong. Will sleep 60 seconds")
+                self.logger.error(e, exc_info=True)
+                self.logger.error("Something went wrong. Will sleep 60 seconds")
                 instabotpatrik.tools.go_sleep(duration_sec=120, plusminus=1)
 
     def run(self):
-        logging.info("[INSTABOT] Starting bot with following configuration:")
-        logging.info("[INSTABOT] Daily cap of LFS count:%d", self.lfs_per_day_cap)
-        logging.info("[INSTABOT] Daily cap for unfollow count:%d", self.unfollow_per_day_cap)
+        self.logger.info("Starting bot with following configuration:")
+        self.logger.info("Daily cap of LFS count:%d", self.lfs_per_day_cap)
+        self.logger.info("Daily cap for unfollow count:%d", self.unfollow_per_day_cap)
 
         self.login_controller.login()
 
         while not self._stopped:
             try:
                 self.current_tag = self.strategy_tag_selection.get_tag()
-                logging.info("[INSTABOT] Starting main loop. Selected tag: %s", self.current_tag)
+                self.logger.info("Starting main loop. Selected tag: %s", self.current_tag)
                 our_username = self.login_controller.get_our_username()
                 medias = self.media_controller.get_recent_media_by_tag(tag=self.current_tag,
                                                                        excluded_owner_usernames=[our_username])
 
                 medias = random.sample(medias, int(len(medias) * self.select_ratio))
 
-                logging.info("[INSTABOT] For tag %s was picked media: %s",
+                self.logger.info("For tag %s was picked media: %s",
                              self.current_tag, [media.shortcode for media in medias])
 
                 self.schedule_and_execute_actions_for_medias(medias)
 
-                logging.info("[INSTABOT] Runned out of all processed medias for tag %d", self.current_tag)
+                self.logger.info("Runned out of all processed medias for tag %d", self.current_tag)
                 instabotpatrik.tools.go_sleep(duration_sec=180, plusminus=120)
 
             # TODO: Dont sleep on 404, the user probably just deleted the media/changed username
             except instabotpatrik.client.InstagramResponseException as e:
                 if e.return_code is not 404:
-                    logging.critical(e, exc_info=True)
-                    logging.critical(
-                        "[INSTABOT] Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
+                    self.logger.critical(e, exc_info=True)
+                    self.logger.critical(
+                        "Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
                         "Botting might had been detected. Will sleep approximately %d seconds now.",
                         e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
                     instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
                 else:
-                    logging.critical(e, exc_info=True)
-                    logging.critical(
-                        "[INSTABOT] Request [%s] %s returned code: %d. You should investigate when is this happening."
+                    self.logger.critical(e, exc_info=True)
+                    self.logger.critical(
+                        "Request [%s] %s returned code: %d. You should investigate when is this happening."
                         "Deleted media? Changed username? Will sleep approximately %d seconds now.",
                         e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
                     instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec / 2, plusminus=120)
             except Exception as e:
-                logging.error(e, exc_info=True)
-                logging.error("[INSTABOT] Something went wrong. Will sleep 60 seconds")
+                self.logger.error(e, exc_info=True)
+                self.logger.error("Something went wrong. Will sleep 60 seconds")
                 instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=10)
 
-        logging.info("[INSTABOT] Bot is stopped.")
+        self.logger.info("Bot is stopped.")
 
     def stop(self):
         self._stopped = True
-        logging.info("[INSTABOT] Stopped flag was set.")
+        self.logger.info("Stopped flag was set.")

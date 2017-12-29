@@ -40,6 +40,7 @@ class UserController:
         """
         self.repository = repository
         self.api_client = api_client
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def follow(self, instagram_id):
         """
@@ -49,18 +50,18 @@ class UserController:
         :rtype: bool
         """
         user = self.get_user_by_id(instagram_id)
-        logging.info("[CORE] Want to follow. Username:%s", user.username)
+        self.logger.info("Want to follow. Username:%s", user.username)
         if user.we_follow_user:
-            logging.info("[CORE] UserID:%s Username:%s is already being followed. Skip this attempt to follow.",
+            self.logger.info("UserID:%s Username:%s is already being followed. Skip this attempt to follow.",
                          user.instagram_id, user.username)
         else:
             is_followed = self.api_client.follow(user.instagram_id)
             if is_followed:
-                logging.info("[CORE] Follow success. Username:%s id:%s", user.username, user.instagram_id)
+                self.logger.info("Follow success. Username:%s id:%s", user.username, user.instagram_id)
                 user.register_follow()
                 self.repository.update_user(user)
             else:
-                raise InstabotException("[CORE] Follow failure. Username:%s id:%s" % (user.username, user.instagram_id))
+                raise InstabotException("Follow failure. Username:%s id:%s" % (user.username, user.instagram_id))
 
     def unfollow(self, instagram_id):
         """
@@ -69,19 +70,19 @@ class UserController:
         :return: True if giving unfollow was successfull
         :rtype: bool
         """
-        logging.info("[CORE] Want to unfollow. id:%s", instagram_id)
+        self.logger.info("Want to unfollow. id:%s", instagram_id)
         user = self.get_user_by_id(instagram_id)
         if not user.we_follow_user:
-            logging.info("[CORE] UserID:%s Username:%s is not followed anyway. Skip this attempt to unfollow.",
+            self.logger.info("UserID:%s Username:%s is not followed anyway. Skip this attempt to unfollow.",
                          user.instagram_id, user.username)
             return
         is_unfollowed = self.api_client.unfollow(user.instagram_id)
         if is_unfollowed:
-            logging.info("[CORE] Unfollow success. Username:%s id:%s", user.username, user.instagram_id)
+            self.logger.info("Unfollow success. Username:%s id:%s", user.username, user.instagram_id)
             user.register_unfollow()
             self.repository.update_user(user)
         else:
-            raise InstabotException("[CORE] Unfollow failure. Username:%s id:%s" % (user.username, user.instagram_id))
+            raise InstabotException("Unfollow failure. Username:%s id:%s" % (user.username, user.instagram_id))
 
     def get_media_owner(self, media_shortcode, asure_fresh_data=False):
         """
@@ -145,6 +146,7 @@ class MediaController:
         """
         self.repository = repository
         self.api_client = api_client
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def get_recent_media_by_tag(self, tag, excluded_owner_usernames=[]):
         """
@@ -172,18 +174,18 @@ class MediaController:
         :param shortcode
         :return: True if giving like was successfull
         """
-        logging.info("[CORE] Want to like. MediaID:%s", media_id)
+        self.logger.info("Want to like. MediaID:%s", media_id)
         media = self.repository.find_media_by_id(media_id=media_id)
         if not media:
             media = self.api_client.get_media_detail(shortcode_media=shortcode)
             self.repository.update_media(media)
         if media.is_liked:
-            logging.info("[CORE] MediaID:%s MediaShortcode:%s OwnerId:%s was already liked. "
+            self.logger.info("MediaID:%s MediaShortcode:%s OwnerId:%s was already liked. "
                          "Skip this attempt to like.", media.instagram_id, media.shortcode, media.owner_id)
         else:
             like_success = self.api_client.like(media_id)
             if like_success:
-                logging.info("[CORE] Like success. MediaID:%s MediaShortcode:%s OwnerId:%s",
+                self.logger.info("Like success. MediaID:%s MediaShortcode:%s OwnerId:%s",
                              media.instagram_id, media.shortcode, media.owner_id)
                 media.add_like()
                 self.repository.update_media(media)
@@ -192,5 +194,5 @@ class MediaController:
                 owner_user.register_like()
                 self.repository.update_user(owner_user)
             else:
-                raise InstabotException("[CORE] Liked failure. MediaID:%s MediaShortcode:%s OwnerId:%s"
+                raise InstabotException("Liked failure. MediaID:%s MediaShortcode:%s OwnerId:%s"
                                         % (media.instagram_id, media.shortcode, media.owner_id))

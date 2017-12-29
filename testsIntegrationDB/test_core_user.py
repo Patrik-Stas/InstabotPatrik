@@ -10,6 +10,8 @@ import pytz
 import freezegun
 
 logging.getLogger().setLevel(30)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class CoreDBInteractionsTestCase(unittest.TestCase):
@@ -118,7 +120,7 @@ class ItShouldUpdateUserWhenWeFollowUser(CoreDBInteractionsTestCase):
         self.assertEqual(user.count_likes_we_gave, user_loaded.count_likes_we_gave)
         self.assertEqual(user.dt_like, user_loaded.dt_like)
         self.assertEqual(datetime.datetime(year=2017, month=12, day=12, hour=12, tzinfo=pytz.UTC),
-                          user_loaded.dt_follow)
+                         user_loaded.dt_follow)
         self.assertEqual(user.dt_unfollow, user_loaded.dt_unfollow)
         self.assertEqual(user.url, user_loaded.url)
         self.assertEqual(user.count_shared_media, user_loaded.count_shared_media)
@@ -145,7 +147,7 @@ class ItShouldUpdateUserWhenWeUnfollowUser(CoreDBInteractionsTestCase):
         self.assertEqual(user.dt_like, user_loaded.dt_like)
         self.assertEqual(user.dt_follow, user_loaded.dt_follow)
         self.assertEqual(datetime.datetime(year=2018, month=12, day=12, hour=12, tzinfo=pytz.UTC),
-                          user_loaded.dt_unfollow)
+                         user_loaded.dt_unfollow)
         self.assertEqual(user.url, user_loaded.url)
         self.assertEqual(user.count_shared_media, user_loaded.count_shared_media)
         self.assertEqual(user.count_follows, user_loaded.count_follows)

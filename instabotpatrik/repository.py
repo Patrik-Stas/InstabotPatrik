@@ -133,6 +133,7 @@ class BotRepositoryMongoDb:
         self.db = mongo_client[database_name]
         self.users_collection = self.db[users_collection_name]
         self.media_collection = self.db[media_collection_name]
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def update_user(self, user):
         """
@@ -163,7 +164,7 @@ class BotRepositoryMongoDb:
             },
             "$currentDate": {"lastModified": True}
         }
-        logging.debug("Going to upsert user:%s", update)
+        self.logger.debug("Going to upsert user:%s", update)
         self.users_collection.update_one(
             filter={"instagram_id": user.instagram_id},
             update=update,

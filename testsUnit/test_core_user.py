@@ -6,6 +6,11 @@ from unittest.mock import patch
 
 from testsUnit.context import instabotpatrik
 from testsUnit.context import testcommon
+import logging
+
+logging.getLogger().setLevel(30)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class UserControllerTestCase(unittest.TestCase):

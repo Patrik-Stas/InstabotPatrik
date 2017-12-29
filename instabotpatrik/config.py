@@ -4,8 +4,9 @@ import logging
 
 class Config:
     def __init__(self, config_path):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.config = configparser.ConfigParser()
-        logging.info("Config reading values from %s", config_path)
+        self.logger.info("Config reading values from %s", config_path)
         with open(config_path) as m:
             self.config.read_file(m)
 

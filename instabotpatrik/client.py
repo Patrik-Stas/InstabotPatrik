@@ -59,6 +59,7 @@ class InstagramClient:
         :type requests_session: requests.Session
         :param proxy:
         """
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.s = requests_session
         self.proxy = proxy
         if proxy != "":
@@ -83,7 +84,7 @@ class InstagramClient:
         this function because it is programmed to be pretty
         printed and may differ from the actual request.
         """
-        logging.debug('{}\n{}\n{}\n\n{}'.format(
+        self.logger.debug('{}\n{}\n{}\n\n{}'.format(
             '-----------START-----------',
             req.method + ' ' + req.url,
             '\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
@@ -98,22 +99,22 @@ class InstagramClient:
         instabotpatrik.tools.go_sleep(6, plusminus=3)  # Let's make sure we don't send too many requests at once
         # request = requests.Request(method_type, url)
         # prepared_request = self.s.prepare_request(request)
-        # logging.info("[CLIENT] Sending [%s] %s", method_type, url)
+        # self.logger.info("Sending [%s] %s", method_type, url)
         # self.pretty_print(prepared_request)
         # r = self.s.send(prepared_request)
-        # logging.info("[CLIENT] Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
-        logging.info("Going to send [%s] %s", method_type, url)
+        # self.logger.info("Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
+        self.logger.info("Going to send [%s] %s", method_type, url)
         r = callable(url)  # TODO figure out how to log request headers, if I use method above, mocking in tests is hard
         if 200 <= r.status_code < 300:
-            logging.info("Response seems good. Response status code: %d", r.status_code)
+            self.logger.info("Response seems good. Response status code: %d", r.status_code)
             parsed_response = None
             if r.text is not None:
                 parsed_response = json.loads(r.text)
-                logging.debug("[CLIENT] Response [%s] %s:\nBody:%s\n", method_type, url,
+                self.logger.debug("Response [%s] %s:\nBody:%s\n", method_type, url,
                               json.dumps(parsed_response, indent=4))
             return parsed_response
         else:
-            logging.error("Instagram doesn't like us. Response status code %d", r.status_code)
+            self.logger.error("Instagram doesn't like us. Response status code %d", r.status_code)
             raise InstagramResponseException(method_type, url, r.status_code)
 
     def post_request(self, url):
@@ -123,15 +124,15 @@ class InstagramClient:
         return self.make_request(url, "GET", self.s.get)
 
     def is_logged_in(self):
-        logging.info("Verifying whether we are logged in ... ")
+        self.logger.info("Verifying whether we are logged in ... ")
         time.sleep(2 + 3 * random.random())
         r = self.s.get('https://www.instagram.com/')
         finder = r.text.find(self.user_login)
         if finder != -1:
             return True
         else:
-            logging.debug("[CLIENT] You don't seem to be logged in, Instagram responded: \n%s", r.text)
-            logging.info("[CLIENT] You don't seem to be logged in, the response code is:%d ", r.status_code)
+            self.logger.debug("You don't seem to be logged in, Instagram responded: \n%s", r.text)
+            self.logger.info("You don't seem to be logged in, the response code is:%d ", r.status_code)
             return False
 
     #
@@ -162,7 +163,7 @@ class InstagramClient:
         })
 
     def _update_csfr_header(self, csfr_token):
-        logging.info("Updating session headers with CSFR token:%s", csfr_token)
+        self.logger.info("Updating session headers with CSFR token:%s", csfr_token)
         self.csfr_token = csfr_token
         self.s.headers.update({'X-CSRFToken': self.csfr_token})
 
@@ -173,7 +174,7 @@ class InstagramClient:
     #     return '%s.headers.json' % self.user_login
 
     def persist_cookies_for_user(self):
-        logging.info("Saving session cookies to file %s" % self._get_cookies_filename())
+        self.logger.info("Saving session cookies to file %s" % self._get_cookies_filename())
         # If we save the cookie dictionary, we loose information about to which host and path these cookies belong.
         # Then if you load them and update requests session with it, it will use these cookies
         # for every host on its root path "/"
@@ -184,7 +185,7 @@ class InstagramClient:
             pickle.dump(self.s.cookies, f)
 
     # def persist_headers_for_user(self):
-    #     logging.info("Saving session headers to file %s" % self._get_headers_filename())
+    #     self.logger.info("Saving session headers to file %s" % self._get_headers_filename())
     #     with open(self._get_headers_filename(), 'w') as f:
     #         json.dump(self.s.headers, f)
 
@@ -208,19 +209,19 @@ class InstagramClient:
 
     def _try_load_session_for_user_from_file(self):
         if self.is_cookie_file_for_user_available():
-            logging.info("Cookie file %s was found. Will load session for user from file.",
+            self.logger.info("Cookie file %s was found. Will load session for user from file.",
                          self._get_cookies_filename())
             self.load_cookies_from_file_for_user()
             assert self.s.cookies['csrftoken'] is not None
             self._update_csfr_header(self.s.cookies['csrftoken'])
             return True
         else:
-            logging.info("Cookie file %s was not found. Will not load session for user from file.",
+            self.logger.info("Cookie file %s was not found. Will not load session for user from file.",
                          self._get_cookies_filename())
             return False
 
     def _execute_fresh_login_procedure(self):
-        logging.info("[CLIENT] Going to do new login. Sending first request to Instagram.")
+        self.logger.info("Going to do new login. Sending first request to Instagram.")
 
         # self.asure_basic_cookies_for_session()
         self.asure_basic_headers_for_session()
@@ -231,13 +232,13 @@ class InstagramClient:
             'username': self.user_login,
             'password': self.user_password
         }
-        logging.info("[CLIENT] Now going to send login request with credentials.")
+        self.logger.info("Now going to send login request with credentials.")
         login_response = self.s.post(self.url_login, data=login_data, allow_redirects=True)  # try login
-        logging.info("[CLIENT] The request to login with credentials received response with body:\n%s",
+        self.logger.info("The request to login with credentials received response with body:\n%s",
                      login_response.text)
-        logging.info("[CLIENT] The request to login with credentials received status code: %s",
+        self.logger.info("The request to login with credentials received status code: %s",
                      login_response.status_code)
-        logging.info("[CLIENT] Received new CSFR token %s", self.csfr_token)
+        self.logger.info("Received new CSFR token %s", self.csfr_token)
 
         parsed_response = json.loads(login_response.text)
         if login_response.status_code != 200 or parsed_response['authenticated'] is not True:
@@ -250,44 +251,44 @@ class InstagramClient:
         :return: True if user was logged in, or login was succesfull. False otherwise
         :rtype: boolean
         """
-        logging.info("Running first check to see if we are already logged in.")
+        self.logger.info("Running first check to see if we are already logged in.")
         if self.is_logged_in():
-            logging.info("[CLIENT] Called login(), but already logged in.")
+            self.logger.info("Called login(), but already logged in.")
             return True
         else:
-            logging.warning("[CLIENT] Seem like we are not logged in yet. I am going to proceed with login.")
+            self.logger.warning("Seem like we are not logged in yet. I am going to proceed with login.")
 
-        logging.info("Should we load session from file?")
+        self.logger.info("Should we load session from file?")
         if self.try_to_load_session_from_file:
-            logging.info("[CLIENT] Try load session from file is enabled. Will try.")
+            self.logger.info("Try load session from file is enabled. Will try.")
             success = self._try_load_session_for_user_from_file()
             self.asure_basic_headers_for_session()
             if success:
                 if self.is_logged_in():
-                    logging.info("[CLIENT] Session was loaded from file and accessing Instagram was verified.")
+                    self.logger.info("Session was loaded from file and accessing Instagram was verified.")
                     return True
                 else:
-                    logging.warning("[CLIENT] Session was loaded from file but seems like we are not "
+                    self.logger.warning("Session was loaded from file but seems like we are not "
                                     "really logged in instagram")
         else:
-            logging.info("We are not gonna try load session from file.")
+            self.logger.info("We are not gonna try load session from file.")
 
         self._execute_fresh_login_procedure()
 
-        logging.info("[CLIENT] Sleeping for few seconds, then we will verify that we are logged in.")
+        self.logger.info("Sleeping for few seconds, then we will verify that we are logged in.")
         time.sleep(3 + 3 * random.random())
-        logging.info("[CLIENT] Going to verify that we are really logged in.")
+        self.logger.info("Going to verify that we are really logged in.")
 
         if self.is_logged_in():
             our_user = self.get_our_user()
-            logging.info('[CLIENT] Success! We are logged in under instagram_id:%s/username:%s!',
+            self.logger.info('Success! We are logged in under instagram_id:%s/username:%s!',
                          our_user.instagram_id, our_user.username)
             self.persist_cookies_for_user()
             # self.persist_headers_for_user()
             #  ->>> TypeError: Object of type 'CaseInsensitiveDict' is not JSON serializable
             return True
         else:
-            raise InstagramLoginException("[CLIENT] We failed logging into Instagram :(")
+            raise InstagramLoginException("We failed logging into Instagram :(")
 
     def get_our_user(self):
         if self.our_user is None:
@@ -299,16 +300,16 @@ class InstagramClient:
         :return: was logout successful
         :rtype: boolean
         """
-        logging.info('Logout.')
+        self.logger.info('Logout.')
         try:
             logout_post = {'csrfmiddlewaretoken': self.csfr_token}
             self.s.post(self.url_logout, data=logout_post)
-            logging.info("[CLIENT] Logout success!")
+            self.logger.info("Logout success!")
             self._login_status = False
             self.s.close()
             return True
         except Exception as e:
-            logging.error(e, exc_info=True)
+            self.logger.error(e, exc_info=True)
             return False
 
     @staticmethod

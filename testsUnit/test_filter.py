@@ -6,7 +6,10 @@ import datetime
 import freezegun
 import pytz
 
+
 logging.getLogger().setLevel(30)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class UserFilterTest(unittest.TestCase):

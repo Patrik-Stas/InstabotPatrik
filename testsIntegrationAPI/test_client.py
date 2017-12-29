@@ -28,6 +28,7 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
 
     @freezegun.freeze_time("2011-11-11 11:00:00", tz_offset=0)
     def runTest(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         credentials = self.load_instagram_credentials()
         self.client = instabotpatrik.client.InstagramClient(
             user_login=credentials['user']['username'],
@@ -84,16 +85,16 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
         self.assertIsNotNone(first.owner_id)
         self.assertIsNotNone(first.shortcode)
 
-        logging.info("Liking first media with shortcode %s", first.shortcode)
-        logging.info("Liking first media by owner id: %s", first.instagram_id)
+        self.logger.info("Liking first media with shortcode %s", first.shortcode)
+        self.logger.info("Liking first media by owner id: %s", first.instagram_id)
         like_success1 = self.client.like(first.instagram_id)
 
         self.assertTrue(like_success1)
         time.sleep(10)
 
         second = medias[1]
-        logging.info("Liking second media with shortcode %s", second.shortcode)
-        logging.info("Liking second media by owner username: %s", second.instagram_id)
+        self.logger.info("Liking second media with shortcode %s", second.shortcode)
+        self.logger.info("Liking second media by owner username: %s", second.instagram_id)
         like_success2 = self.client.like(second.instagram_id)
         self.assertTrue(like_success2)
 

@@ -1,5 +1,10 @@
 from testsUnit.context import instabotpatrik
 import unittest.mock
+import logging
+
+logging.getLogger().setLevel(30)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
 
 
 class UserDetailTestCase(unittest.TestCase):
