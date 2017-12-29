@@ -44,7 +44,7 @@ class InstaBot:
         self.lfs_per_day_cap = 100  # lfs = like-follow-session
 
         self.time_in_day = 24 * 60 * 60
-        self.ban_sleep_time_sec = 2 * 60 * 60  # how long sleep if we get non 2xx response
+        self.ban_sleep_time_sec = 10 * 60 * 60  # how long sleep if we get non 2xx response
 
         self.lfs_delay_sec = self.time_in_day / self.lfs_per_day_cap
         self.unfollow_delay_sec = self.time_in_day / self.unfollow_per_day_cap
@@ -139,11 +139,19 @@ class InstaBot:
 
             # TODO: Dont sleep on 404, the user probably just deleted the media/changed username
             except instabotpatrik.client.InstagramResponseException as e:
-                logging.critical(e, exc_info=True)
-                logging.critical("Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
-                                 "Botting might had been detected. Will sleep approximately %d seconds now.",
-                                 e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
-                instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
+
+                if e.return_code is not 404:
+                    logging.critical(e, exc_info=True)
+                    logging.critical("Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
+                                     "Botting might had been detected. Will sleep approximately %d seconds now.",
+                                     e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
+                    instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
+                else:
+                    logging.critical(e, exc_info=True)
+                    logging.critical("Request [%s] %s returned code: %d. You should investigate when is this happening."
+                                     "Deleted media? Changed username? Will sleep approximately %d seconds now.",
+                                     e.request_type, e.request_address, e.return_code, self.ban_sleep_time_sec)
+                    instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec/2, plusminus=120)
             except Exception as e:
                 logging.error(e, exc_info=True)
                 logging.error("Something went wrong. Will sleep 60 seconds")
