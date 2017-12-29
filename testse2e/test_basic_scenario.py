@@ -10,7 +10,7 @@ import logging
 import subprocess
 import requests
 
-logging.getLogger().setLevel(20)
+logging.getLogger().setLevel(10)
 logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
                     datefmt='%m/%d/%Y-%H:%M:%S')
 

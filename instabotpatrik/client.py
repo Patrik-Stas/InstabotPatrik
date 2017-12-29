@@ -14,10 +14,11 @@ if 'threading' in sys.modules:
 
 
 class InstagramResponseException(Exception):
-    def __init__(self, request_type, request_address, return_code):
+    def __init__(self, request_type, request_address, return_code, response_body):
         self.request_type = request_type
         self.request_address = request_address
         self.return_code = return_code
+        self.response_body = response_body
 
 
 class InstagramLoginException(Exception):
@@ -97,25 +98,31 @@ class InstagramClient:
         :rtype: dict
         """
         instabotpatrik.tools.go_sleep(6, plusminus=3)  # Let's make sure we don't send too many requests at once
-        # request = requests.Request(method_type, url)
-        # prepared_request = self.s.prepare_request(request)
-        # self.logger.info("Sending [%s] %s", method_type, url)
-        # self.pretty_print(prepared_request)
-        # r = self.s.send(prepared_request)
-        # self.logger.info("Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
-        self.logger.info("Going to send [%s] %s", method_type, url)
-        r = callable(url)  # TODO figure out how to log request headers, if I use method above, mocking in tests is hard
+
+        # requests with detailed logging
+        request = requests.Request(method_type, url)
+        prepared_request = self.s.prepare_request(request)
+        self.logger.info("Sending [%s] %s", method_type, url)
+        self.pretty_print(prepared_request)
+        r = self.s.send(prepared_request)
+        self.logger.info("Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
+
+
+        #  TODO figure out how to log request headers, if I use method above, mocking in tests is hard
+        # self.logger.info("Going to send [%s] %s", method_type, url)
+        # r = callable(url)
+
         if 200 <= r.status_code < 300:
             self.logger.info("Response seems good. Response status code: %d", r.status_code)
             parsed_response = None
             if r.text is not None:
                 parsed_response = json.loads(r.text)
                 self.logger.debug("Response [%s] %s:\nBody:%s\n", method_type, url,
-                              json.dumps(parsed_response, indent=4))
+                                  json.dumps(parsed_response, indent=4))
             return parsed_response
         else:
             self.logger.error("Instagram doesn't like us. Response status code %d", r.status_code)
-            raise InstagramResponseException(method_type, url, r.status_code)
+            raise InstagramResponseException(method_type, url, r.status_code, r.text)
 
     def post_request(self, url):
         return self.make_request(url, "POST", self.s.post)
@@ -210,14 +217,14 @@ class InstagramClient:
     def _try_load_session_for_user_from_file(self):
         if self.is_cookie_file_for_user_available():
             self.logger.info("Cookie file %s was found. Will load session for user from file.",
-                         self._get_cookies_filename())
+                             self._get_cookies_filename())
             self.load_cookies_from_file_for_user()
             assert self.s.cookies['csrftoken'] is not None
             self._update_csfr_header(self.s.cookies['csrftoken'])
             return True
         else:
             self.logger.info("Cookie file %s was not found. Will not load session for user from file.",
-                         self._get_cookies_filename())
+                             self._get_cookies_filename())
             return False
 
     def _execute_fresh_login_procedure(self):
@@ -235,9 +242,9 @@ class InstagramClient:
         self.logger.info("Now going to send login request with credentials.")
         login_response = self.s.post(self.url_login, data=login_data, allow_redirects=True)  # try login
         self.logger.info("The request to login with credentials received response with body:\n%s",
-                     login_response.text)
+                         login_response.text)
         self.logger.info("The request to login with credentials received status code: %s",
-                     login_response.status_code)
+                         login_response.status_code)
         self.logger.info("Received new CSFR token %s", self.csfr_token)
 
         parsed_response = json.loads(login_response.text)
@@ -269,7 +276,7 @@ class InstagramClient:
                     return True
                 else:
                     self.logger.warning("Session was loaded from file but seems like we are not "
-                                    "really logged in instagram")
+                                        "really logged in instagram")
         else:
             self.logger.info("We are not gonna try load session from file.")
 
@@ -282,7 +289,7 @@ class InstagramClient:
         if self.is_logged_in():
             our_user = self.get_our_user()
             self.logger.info('Success! We are logged in under instagram_id:%s/username:%s!',
-                         our_user.instagram_id, our_user.username)
+                             our_user.instagram_id, our_user.username)
             self.persist_cookies_for_user()
             # self.persist_headers_for_user()
             #  ->>> TypeError: Object of type 'CaseInsensitiveDict' is not JSON serializable
@@ -389,7 +396,7 @@ class InstagramClient:
         shortcode_media = r_object['graphql']['shortcode_media']
 
         caption = shortcode_media['edge_media_to_caption']['edges'][0]['node']['text'] if \
-        shortcode_media['edge_media_to_caption']['edges'] else None
+            shortcode_media['edge_media_to_caption']['edges'] else None
         return instabotpatrik.model.InstagramMedia(instagram_id=shortcode_media['id'],
                                                    shortcode=shortcode_media['shortcode'],
                                                    owner_id=shortcode_media['owner']['id'],
