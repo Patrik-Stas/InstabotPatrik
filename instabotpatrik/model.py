@@ -139,12 +139,12 @@ class InstagramUser:
     def register_follow(self):
         self._bot_data.dt_follow = instabotpatrik.tools.get_utc_datetime()
         self._detail.we_follow_user = True
-        logging.debug("Registered follow user_id:%s username:%s.")
+        logging.debug("[MODEL] Registered follow user_id:%s username:%s.")
 
     def register_unfollow(self):
         self._bot_data.dt_unfollow = instabotpatrik.tools.get_utc_datetime()
         self._detail.we_follow_user = False
-        logging.debug("Registered unfollow user_id:%s username:%s")
+        logging.debug("[MODEL] Registered unfollow user_id:%s username:%s")
 
     def register_like(self):
         self._bot_data.dt_like = instabotpatrik.tools.get_utc_datetime()
@@ -152,7 +152,7 @@ class InstagramUser:
             self._bot_data.count_likes_we_gave = 1
         else:
             self._bot_data.count_likes_we_gave += 1
-        logging.debug("Registered like for user_id:%s username:%s. He has now %d likes",
+        logging.debug("[MODEL] Registered like for user_id:%s username:%s. He has now %d likes",
                       self.instagram_id, self.username, self.count_likes_we_gave)
 
 

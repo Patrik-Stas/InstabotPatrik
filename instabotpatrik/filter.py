@@ -8,7 +8,7 @@ import instabotpatrik
 def _check_if_user_is_fully_known(user):
     if not user.is_fully_known():
         raise instabotpatrik.model.InsufficientInformationException(
-            "User %s is not fully known. StrategyFollowBasic can't determine "
+            "[FILTER] User %s is not fully known. StrategyFollowBasic can't determine "
             "whether we should follow or not.")
 
 
@@ -16,7 +16,7 @@ def _log_filter_passed(user, filter_instance):
     """
     :type user: instabotpatrik.model.InstagramUser
     """
-    logging.info("User id:%s username:%s passed the filter %s. Based on data filter evaluated: %s",
+    logging.info("[FILTER] User id:%s username:%s passed the filter %s. Based on data filter evaluated: %s",
                  user.instagram_id,
                  user.username,
                  filter_instance.__class__.__name__,
@@ -28,7 +28,7 @@ def _log_filter_not_passed(user, filter_instance):
     """
     :type user: instabotpatrik.model.InstagramUser
     """
-    logging.info("User id:%s username:%s didn't pass the filter %s. Based on data filter evaluated: %s",
+    logging.info("[FILTER] User id:%s username:%s didn't pass the filter %s. Based on data filter evaluated: %s",
                  user.instagram_id,
                  user.username,
                  filter_instance.__class__.__name__,
