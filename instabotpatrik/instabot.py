@@ -93,6 +93,16 @@ class InstaBot:
                 if self.action_manager.is_action_allowed_now("liking_session"):
                     media = medias.pop()
                     logging.info("[INSTABOT] Going to check if we can do LFS on media %s", media.shortcode)
+
+                    # When tag is used by single owner, who is also not acceptable owner for LFS,
+                    # we might get into a loop because all media codes we get are his. We should probably count
+                    # how many times we tried to do LFS for a tag succesfully/unsucesfully and stored that information
+                    # Then we can discover crappy tags and remove those.
+                    # For now jsut workaround, put more sleep before doing next LFS checking
+                    instabotpatrik.tools.go_sleep(duration_sec=20, plusminus=10)
+
+                    # We could also do improvement here, we could track the last time we refreshed tht data
+                    # and then refresh them only if certain amount time passed since last refresh
                     media_owner = self.user_controller.get_media_owner(media_shortcode=media.shortcode,
                                                                        asure_fresh_data=True)  # explore users profile
                     if self.lfs_workflow.is_approved_for_lfs(media_owner):
@@ -116,7 +126,7 @@ class InstaBot:
             except Exception as e:
                 logging.error(e, exc_info=True)
                 logging.error("Something went wrong. Will sleep 60 seconds")
-                instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=1)
+                instabotpatrik.tools.go_sleep(duration_sec=120, plusminus=1)
 
     def run(self):
         logging.info("[INSTABOT] Starting bot with following configuration:")
