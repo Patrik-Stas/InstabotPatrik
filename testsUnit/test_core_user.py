@@ -2,7 +2,6 @@
 
 import unittest
 import unittest.mock
-from unittest.mock import patch
 
 from testsUnit.context import instabotpatrik
 from testsUnit.context import testcommon
@@ -33,16 +32,6 @@ class ItShouldNotUseApiClientIfWeAlreadyFollowUser(UserControllerTestCase):
         self.client_mock.follow.assert_not_called()
 
 
-class ItShouldThrowInstabotExceptionIfClientFollowIsNotSuccess(UserControllerTestCase):
-    def test_run(self):
-        self.user_detail = testcommon.factory.create_user_detail(we_follow_user=False)
-        user = instabotpatrik.model.InstagramUser("user1", "username1", user_detail=self.user_detail)
-        self.repo_mock.find_user.return_value = user
-        self.client_mock.follow.return_value = False
-
-        self.assertRaises(instabotpatrik.core.InstabotException, self.user_controller.follow, user.instagram_id)
-
-
 # UNFOLLOW
 
 class ItShouldNotUseApiClientOnUnfollowIfWeAreNotFollowingUser(UserControllerTestCase):
@@ -54,13 +43,3 @@ class ItShouldNotUseApiClientOnUnfollowIfWeAreNotFollowingUser(UserControllerTes
         self.user_controller.unfollow(user.instagram_id)
 
         self.client_mock.unfollow.assert_not_called()
-
-
-class ItShouldThrowInstabotExceptionIfClientUnfollowIsNotSuccess(UserControllerTestCase):
-    def test_run(self):
-        self.user_detail = testcommon.factory.create_user_detail(we_follow_user=True)
-        user = instabotpatrik.model.InstagramUser("user1", "username1", user_detail=self.user_detail)
-        self.repo_mock.find_user.return_value = user
-        self.client_mock.unfollow.return_value = False
-
-        self.assertRaises(instabotpatrik.core.InstabotException, self.user_controller.unfollow, user.instagram_id)

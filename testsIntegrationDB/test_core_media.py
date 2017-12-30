@@ -43,7 +43,6 @@ class ItShouldUpdateUserWhenWeLikeHisMedia(CoreDBInteractionsTestCase):
             time_liked=None
         )
         self.repo_bot.update_media(media1)
-        self.client_mock.like.return_value = True
 
         self.media_controller.like(media_id=media1.instagram_id, shortcode=media1.shortcode)
 
@@ -76,7 +75,6 @@ class ItShouldUpdateMediaInDbWhenIsLiked(CoreDBInteractionsTestCase):
             time_liked=None
         )
         self.repo_bot.update_media(media1)
-        self.client_mock.like.return_value = True
 
         self.assertFalse(media1.is_liked)
         self.media_controller.like(media_id=media1.instagram_id, shortcode=media1.shortcode)
@@ -121,7 +119,6 @@ class ItShouldCorrectlyTrackNumberOfLikedMediasOfUser(CoreDBInteractionsTestCase
 
 class ItShouldQueryInstagramIfMediaIsNotStoredInDB(CoreDBInteractionsTestCase):
     def runTest(self):
-        self.client_mock.like.return_value = True
         media1 = instabotpatrik.model.InstagramMedia(
             instagram_id="nonexisting_id",
             shortcode="foobar42",
@@ -134,7 +131,6 @@ class ItShouldQueryInstagramIfMediaIsNotStoredInDB(CoreDBInteractionsTestCase):
         )
 
         self.client_mock.get_media_detail.return_value = media1
-        self.client_mock.like.return_value = True
         self.media_controller.like(media_id=media1.instagram_id, shortcode=media1.shortcode)
 
         self.client_mock.get_media_detail.assert_called_with(media1.shortcode)

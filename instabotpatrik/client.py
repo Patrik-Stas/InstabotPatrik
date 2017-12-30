@@ -14,7 +14,8 @@ if 'threading' in sys.modules:
 
 
 class InstagramResponseException(Exception):
-    def __init__(self, request_type, request_address, return_code, response_body):
+    def __init__(self, request_type, request_address, return_code=None, response_body=None, message=""):
+        super().__init__(message)
         self.request_type = request_type
         self.request_address = request_address
         self.return_code = return_code
@@ -543,8 +544,14 @@ class InstagramClient:
         :return: True if giving like was successfull
         :rtype: bool
         """
-        r_object = self.post_request(self.url_likes % media_id)
-        return True if r_object['status'] == 'ok' else False
+        url_address = self.url_likes % media_id
+        r_object = self.post_request(url_address)
+        if r_object['status'] == 'ok':
+            return True
+        else:
+            InstagramResponseException(message="Like response was invalid. Response: %s" % str(r_object),
+                                       request_type="POST",
+                                       request_address=url_address)
 
     def follow(self, user_id):
         """
@@ -552,8 +559,14 @@ class InstagramClient:
         :return: True if giving follow was successfull
         :rtype: bool
         """
-        r_object = self.post_request(self.url_follow % user_id)
-        return True if r_object['status'] == 'ok' else False
+        url_address = self.url_follow % user_id
+        r_object = self.post_request(url_address)
+        if r_object['status'] == 'ok':
+            return True
+        else:
+            InstagramResponseException(message="Follow response was invalid. Response: %s" % str(r_object),
+                                       request_type="POST",
+                                       request_address=url_address)
 
     def unfollow(self, user_id):
         """
@@ -561,5 +574,12 @@ class InstagramClient:
         :return: True if giving follow was successfull
         :rtype: bool
         """
+        url_address = self.url_follow % user_id
         r_object = self.post_request(self.url_unfollow % user_id)
-        return True if r_object['status'] == 'ok' else False
+        if r_object['status'] == 'ok':
+            return True
+        else:
+            InstagramResponseException(message="Unfollow response was invalid. Response: %s" % str(r_object),
+                                       request_type="POST",
+                                       request_address=url_address)
+

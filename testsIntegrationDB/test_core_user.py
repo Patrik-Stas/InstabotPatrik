@@ -110,7 +110,6 @@ class ItShouldUpdateUserWhenWeFollowUser(CoreDBInteractionsTestCase):
         user = common.get_sample_user(we_follow_user=False)
         self.assertEqual(user.we_follow_user, False)
         self.repo_bot.update_user(user)
-        self.client_mock.like.return_value = True
 
         self.user_controller.follow(instagram_id=user.instagram_id)
 
@@ -136,7 +135,6 @@ class ItShouldUpdateUserWhenWeUnfollowUser(CoreDBInteractionsTestCase):
         user = common.get_sample_user(we_follow_user=True)
         self.assertEqual(user.we_follow_user, True)
         self.repo_bot.update_user(user)
-        self.client_mock.like.return_value = True
 
         self.user_controller.unfollow(instagram_id=user.instagram_id)
 
