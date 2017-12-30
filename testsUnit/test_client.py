@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
-from testsUnit.context import instabotpatrik
-from unittest.mock import patch
+import logging
 import unittest
 import unittest.mock
+from unittest.mock import patch
+
 import requests
 import requests.models
-import testsUnit.data_get_media_by_tag
+
 import testsUnit.data_action_responses
+import testsUnit.data_get_media_by_tag
 import testsUnit.data_get_media_detail
 import testsUnit.data_get_user_detail
-import logging
+from testsUnit.context import instabotpatrik
 
 logging.getLogger().setLevel(30)
 logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
@@ -65,6 +67,42 @@ class ItShouldParseMediaDetail(unittest.TestCase):
         session_mock.get.assert_called_with("https://www.instagram.com/p/mediaCodeABCDE/?__a=1")
 
 
+class GetMediaDetailShouldThrowMediaNotFoundExceptionIfResponseCodeIs404(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=404, text=testsUnit.data_get_media_detail.response)
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.MediaNotFoundException) as cm:
+            client.get_media_detail("someshortcode_ABC")
+        the_exception = cm.exception
+        self.assertEqual(the_exception.shortcode, "someshortcode_ABC")
+
+
+class GetMediaDetailShouldThrowInstagramResponseExceptionIfResponseCodeIs404(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=400, text="Doesnt matter in case of 400")
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        self.assertRaises(instabotpatrik.client.InstagramResponseException, client.get_media_detail,
+                          "someshortcode_ABC")
+
+
 class ItShouldParseUserDetails(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
@@ -89,6 +127,76 @@ class ItShouldParseUserDetails(unittest.TestCase):
         self.assertEqual(user.we_follow_user, False)
         self.assertEqual(user.user_follows_us, True)
         session_mock.get.assert_called_with("https://www.instagram.com/traveluser/?__a=1")
+
+
+class GetRecentMediaOfUserShouldRaiseUserNotFoundException(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=404, text="This should not matter in case of 404")
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+        with self.assertRaises(instabotpatrik.client.UserNotFoundException) as cm:
+            client.get_recent_media_of_user("someusername")
+        the_exception = cm.exception
+        self.assertEqual(the_exception.username, "someusername")
+
+
+class GetRecentMediaOfUserShouldRaiseInvalidResponseException(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=400, text="This should not matter in case of 404")
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+            client.get_recent_media_of_user("someusername")
+
+
+class GetUserShouldRaiseUserNotFoundException(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=404, text="This should not matter in case of 404")
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.UserNotFoundException) as cm:
+            client.get_user_with_details("someusername")
+        the_exception = cm.exception
+        self.assertEqual(the_exception.username, "someusername")
+
+
+class GetUserShouldRaiseInstagramResponseException(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=400, text="Might not be json on 400")
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+            client.get_user_with_details("someusername")
 
 
 class ItShouldLikePost(unittest.TestCase):

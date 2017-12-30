@@ -21,13 +21,22 @@ class InstagramResponseException(Exception):
         self.response_body = response_body
 
 
+class UserNotFoundException(Exception):
+    def __init__(self, username, message=None):
+        super().__init__(message)
+        self.username = username
+
+
+class MediaNotFoundException(Exception):
+    def __init__(self, shortcode, message=None):
+        super().__init__(message)
+        self.shortcode = shortcode
+
+
 class InstagramLoginException(Exception):
     def __init__(self, reason):
         self.reason = reason
 
-
-# TODO : Need to wrap mappings with try/except and raise some sort of mapping/parsing exceptions ... for example
-# when we try to use some field in Instagram response which doesn't exist (might be optional)
 
 class InstagramClient:
     url = 'https://www.instagram.com/'
@@ -100,17 +109,16 @@ class InstagramClient:
         instabotpatrik.tools.go_sleep(6, plusminus=3)  # Let's make sure we don't send too many requests at once
 
         # requests with detailed logging
-        request = requests.Request(method_type, url)
-        prepared_request = self.s.prepare_request(request)
-        self.logger.info("Sending [%s] %s", method_type, url)
-        self.pretty_print(prepared_request)
-        r = self.s.send(prepared_request)
-        self.logger.info("Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
-
+        # request = requests.Request(method_type, url)
+        # prepared_request = self.s.prepare_request(request)
+        # self.logger.info("Sending [%s] %s", method_type, url)
+        # self.pretty_print(prepared_request)
+        # r = self.s.send(prepared_request)
+        # self.logger.info("Response [%s] %s:\nStatus:%d", method_type, url, r.status_code)
 
         #  TODO figure out how to log request headers, if I use method above, mocking in tests is hard
-        # self.logger.info("Going to send [%s] %s", method_type, url)
-        # r = callable(url)
+        self.logger.info("Going to send [%s] %s", method_type, url)
+        r = callable(url)
 
         if 200 <= r.status_code < 300:
             self.logger.info("Response seems good. Response status code: %d", r.status_code)
@@ -121,7 +129,6 @@ class InstagramClient:
                                   json.dumps(parsed_response, indent=4))
             return parsed_response
         else:
-            self.logger.error("Instagram doesn't like us. Response status code %d", r.status_code)
             raise InstagramResponseException(method_type, url, r.status_code, r.text)
 
     def post_request(self, url):
@@ -190,11 +197,6 @@ class InstagramClient:
         #     json.dump(dict_cookie, f)
         with open(self._get_cookies_filename(), 'wb') as f:
             pickle.dump(self.s.cookies, f)
-
-    # def persist_headers_for_user(self):
-    #     self.logger.info("Saving session headers to file %s" % self._get_headers_filename())
-    #     with open(self._get_headers_filename(), 'w') as f:
-    #         json.dump(self.s.headers, f)
 
     def load_cookies_from_file_for_user(self):
         # with open(self._get_cookies_filename(), 'r') as f:
@@ -291,8 +293,6 @@ class InstagramClient:
             self.logger.info('Success! We are logged in under instagram_id:%s/username:%s!',
                              our_user.instagram_id, our_user.username)
             self.persist_cookies_for_user()
-            # self.persist_headers_for_user()
-            #  ->>> TypeError: Object of type 'CaseInsensitiveDict' is not JSON serializable
             return True
         else:
             raise InstagramLoginException("We failed logging into Instagram :(")
@@ -372,7 +372,16 @@ class InstagramClient:
         :return:
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
-        r_object = self.get_request(self.url_user_detail % username)
+        try:
+            r_object = self.get_request(self.url_user_detail % username)
+        except InstagramResponseException as e:
+            if e.return_code == 404:
+                raise UserNotFoundException(message="User %s not found on instagram." % username,
+                                            username=username) from e
+            else:
+                raise e
+        user_info = r_object['user']
+
         dict_medias = list(r_object['user']['media']['nodes'])
         medias = []
         for dict_media in dict_medias:
@@ -392,7 +401,17 @@ class InstagramClient:
         :return: media details
         :rtype: instabotpatrik.model.InstagramMedia
         """
-        r_object = self.get_request(self.url_media_detail % shortcode_media)
+
+        try:
+            r_object = self.get_request(self.url_media_detail % shortcode_media)
+        except InstagramResponseException as e:
+            if e.return_code == 404:
+                raise MediaNotFoundException(
+                    message="Media with shortcode %s not found on instagram." % shortcode_media,
+                    shortcode=shortcode_media) from e
+            else:
+                raise e
+
         shortcode_media = r_object['graphql']['shortcode_media']
 
         caption = shortcode_media['edge_media_to_caption']['edges'][0]['node']['text'] if \
@@ -459,9 +478,15 @@ class InstagramClient:
         """
         :rtype: instabotpatrik.model.InstagramUser
         """
-        r_object = self.get_request(self.url_user_detail % username)
+        try:
+            r_object = self.get_request(self.url_user_detail % username)
+        except InstagramResponseException as e:
+            if e.return_code == 404:
+                raise UserNotFoundException(message="User %s not found on instagram." % username,
+                                            username=username) from e
+            else:
+                raise e
         user_info = r_object['user']
-
         detail = instabotpatrik.model.InstagramUserDetail(url=user_info['external_url'],
                                                           count_shared_media=user_info['media']['count'],
                                                           count_follows=user_info['follows']['count'],
