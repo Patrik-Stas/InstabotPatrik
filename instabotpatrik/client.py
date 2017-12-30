@@ -22,6 +22,15 @@ class InstagramResponseException(Exception):
         self.response_body = response_body
 
 
+class BottingDetectedException(Exception):
+    def __init__(self, request_type, request_address, return_code=None, response_body=None, message=""):
+        super().__init__(message)
+        self.request_type = request_type
+        self.request_address = request_address
+        self.return_code = return_code
+        self.response_body = response_body
+
+
 class UserNotFoundException(Exception):
     def __init__(self, username, message=None):
         super().__init__(message)
@@ -130,7 +139,10 @@ class InstagramClient:
                                   json.dumps(parsed_response, indent=4))
             return parsed_response
         else:
-            raise InstagramResponseException(method_type, url, r.status_code, r.text)
+            if 400 <= r.status_code < 500 and r.status_code != 404:
+                raise BottingDetectedException(method_type, url, r.status_code, r.text)
+            else:
+                raise InstagramResponseException(method_type, url, r.status_code, r.text)
 
     def post_request(self, url):
         return self.make_request(url, "POST", self.s.post)
@@ -546,12 +558,10 @@ class InstagramClient:
         """
         url_address = self.url_likes % media_id
         r_object = self.post_request(url_address)
-        if r_object['status'] == 'ok':
-            return True
-        else:
-            InstagramResponseException(message="Like response was invalid. Response: %s" % str(r_object),
-                                       request_type="POST",
-                                       request_address=url_address)
+        if not r_object['status'] == 'ok':
+            raise InstagramResponseException(message="Like response was invalid. Response: %s" % str(r_object),
+                                             request_type="POST",
+                                             request_address=url_address)
 
     def follow(self, user_id):
         """
@@ -561,12 +571,10 @@ class InstagramClient:
         """
         url_address = self.url_follow % user_id
         r_object = self.post_request(url_address)
-        if r_object['status'] == 'ok':
-            return True
-        else:
-            InstagramResponseException(message="Follow response was invalid. Response: %s" % str(r_object),
-                                       request_type="POST",
-                                       request_address=url_address)
+        if not r_object['status'] == 'ok':
+            raise InstagramResponseException(message="Follow response was invalid. Response: %s" % str(r_object),
+                                             request_type="POST",
+                                             request_address=url_address)
 
     def unfollow(self, user_id):
         """
@@ -576,10 +584,7 @@ class InstagramClient:
         """
         url_address = self.url_follow % user_id
         r_object = self.post_request(self.url_unfollow % user_id)
-        if r_object['status'] == 'ok':
-            return True
-        else:
-            InstagramResponseException(message="Unfollow response was invalid. Response: %s" % str(r_object),
-                                       request_type="POST",
-                                       request_address=url_address)
-
+        if not r_object['status'] == 'ok':
+            raise InstagramResponseException(message="Unfollow response was invalid. Response: %s" % str(r_object),
+                                             request_type="POST",
+                                             request_address=url_address)

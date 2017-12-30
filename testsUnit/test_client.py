@@ -86,7 +86,7 @@ class GetMediaDetailShouldThrowMediaNotFoundExceptionIfResponseCodeIs404(unittes
         self.assertEqual(the_exception.shortcode, "someshortcode_ABC")
 
 
-class GetMediaDetailShouldThrowInstagramResponseExceptionIfResponseCodeIs404(unittest.TestCase):
+class GetMediaDetailShouldRaiseBottingDetectedExceptionIfResponseCodeIs404(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
     def test_run(self, mock_sleep):
@@ -99,7 +99,7 @@ class GetMediaDetailShouldThrowInstagramResponseExceptionIfResponseCodeIs404(uni
             requests_session=session_mock
         )
 
-        self.assertRaises(instabotpatrik.client.InstagramResponseException, client.get_media_detail,
+        self.assertRaises(instabotpatrik.client.BottingDetectedException, client.get_media_detail,
                           "someshortcode_ABC")
 
 
@@ -147,7 +147,7 @@ class GetRecentMediaOfUserShouldRaiseUserNotFoundException(unittest.TestCase):
         self.assertEqual(the_exception.username, "someusername")
 
 
-class GetRecentMediaOfUserShouldRaiseInvalidResponseException(unittest.TestCase):
+class GetRecentMediaOfUserShouldRaiseBottingDetectedOnCode400(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
     def test_run(self, mock_sleep):
@@ -159,7 +159,7 @@ class GetRecentMediaOfUserShouldRaiseInvalidResponseException(unittest.TestCase)
             user_password="xyz",
             requests_session=session_mock
         )
-        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+        with self.assertRaises(instabotpatrik.client.BottingDetectedException) as cm:
             client.get_recent_media_of_user("someusername")
 
 
@@ -182,7 +182,7 @@ class GetUserShouldRaiseUserNotFoundException(unittest.TestCase):
         self.assertEqual(the_exception.username, "someusername")
 
 
-class GetUserShouldRaiseInstagramResponseException(unittest.TestCase):
+class GetUserShouldRaiseBottingDetectedExceptionOn400(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
     def test_run(self, mock_sleep):
@@ -195,7 +195,7 @@ class GetUserShouldRaiseInstagramResponseException(unittest.TestCase):
             requests_session=session_mock
         )
 
-        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+        with self.assertRaises(instabotpatrik.client.BottingDetectedException) as cm:
             client.get_user_with_details("someusername")
 
 
@@ -211,9 +211,40 @@ class ItShouldLikePost(unittest.TestCase):
             requests_session=session_mock
         )
 
-        success = client.like("mediaid_12312")
-        self.assertTrue(success)
+        client.like("mediaid_12312")
         session_mock.post.assert_called_with("https://www.instagram.com/web/likes/mediaid_12312/like/")
+
+
+class LikeShouldRaiseBottingDetectedExceptionOn401(unittest.TestCase):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=401, text=testsUnit.data_action_responses.response_like)
+        session_mock.post.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.BottingDetectedException) as cm:
+            client.like("media_id")
+
+
+class LikeShouldRaiseInstagramResponseException(unittest.TestCase):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text='{"status": "error"}')
+        session_mock.post.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+            client.like("media_id")
 
 
 class ItShouldFollowUser(unittest.TestCase):
@@ -228,9 +259,24 @@ class ItShouldFollowUser(unittest.TestCase):
             requests_session=session_mock
         )
 
-        success = client.follow("someuser_id")
-        self.assertTrue(success)
+        client.follow("someuser_id")
         session_mock.post.assert_called_with("https://www.instagram.com/web/friendships/someuser_id/follow/")
+
+
+class FollowShouldRaiseInstagramResponseException(unittest.TestCase):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text='{"status": "error"}')
+        session_mock.post.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+            client.follow("user_id")
 
 
 class ItShouldUnfollowUser(unittest.TestCase):
@@ -245,9 +291,24 @@ class ItShouldUnfollowUser(unittest.TestCase):
             requests_session=session_mock
         )
 
-        success = client.unfollow("someuser_id")
-        self.assertTrue(success)
+        client.unfollow("someuser_id")
         session_mock.post.assert_called_with("https://www.instagram.com/web/friendships/someuser_id/unfollow/")
+
+
+class FollowShouldRaiseInstagramResponseException(unittest.TestCase):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text='{"status": "error"}')
+        session_mock.post.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        with self.assertRaises(instabotpatrik.client.InstagramResponseException) as cm:
+            client.unfollow("user_id")
 
 
 if __name__ == '__main__':
