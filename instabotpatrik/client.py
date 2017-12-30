@@ -140,7 +140,10 @@ class InstagramClient:
             return parsed_response
         else:
             if 400 <= r.status_code < 500 and r.status_code != 404:
-                raise BottingDetectedException(method_type, url, r.status_code, r.text)
+                exception_message = "Unsatisfying response from Instagram. Request [%s] %s returned code: %d. " \
+                                    "Response body: \n%d\n\nBotting might had been detected." \
+                                    % (method_type, url, r.status_code, r.status_code)
+                raise BottingDetectedException(method_type, url, r.status_code, r.text, message=exception_message)
             else:
                 raise InstagramResponseException(method_type, url, r.status_code, r.text)
 

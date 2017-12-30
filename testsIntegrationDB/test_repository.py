@@ -148,3 +148,34 @@ class ItShouldFindUserFollowedUsers(RepositoryTestCase):
         self.assertEqual(len(followed), 2)
         self.assertTrue("xyz" in [user.instagram_id for user in followed])
         self.assertTrue("foo" in [user.instagram_id for user in followed])
+
+
+class ItShouldDeleteUser(RepositoryTestCase):
+    def runTest(self):
+        user1 = instabotpatrik.model.InstagramUser(
+            instagram_id="abc",
+            username="abcuser",
+            user_detail=testcommon.factory.create_user_detail(we_follow_user=False, user_follows_us=False)
+        )
+        self.repository.update_user(user1)
+        db_user = self.repository.find_user(instagram_id="abc")
+        self.repository.delete_user(username=db_user.username)
+        after_delete = self.repository.find_user(instagram_id="abc")
+
+        self.assertIsNotNone(db_user)
+        self.assertIsNone(after_delete)
+
+
+class ItShouldDeleteMedia(RepositoryTestCase):
+    def runTest(self):
+        media1 = instabotpatrik.model.InstagramMedia(
+            instagram_id="abc",
+            shortcode="shortcodeABC",
+        )
+        self.repository.update_media(media1)
+        db_media = self.repository.find_media_by_id(media_id=media1.instagram_id)
+        self.repository.delete_media(shortcode=media1.shortcode)
+        after_delete = self.repository.find_media_by_id(media_id=media1.instagram_id)
+
+        self.assertIsNotNone(db_media)
+        self.assertIsNone(after_delete)

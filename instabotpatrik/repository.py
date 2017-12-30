@@ -196,6 +196,12 @@ class BotRepositoryMongoDb:
         # Lets not fall into premature optimizations here yet...
         return list(self.users_collection.find(filter={"detail.we_follow_user": True}))
 
+    def delete_user(self, username):
+        self.users_collection.delete_one(filter={"username": username})
+
+    def delete_media(self, shortcode):
+        self.media_collection.delete_one(filter={"shortcode": shortcode})
+
     def update_media(self, media):
         """
         :param media: Save media to database. Media is identified by instagram_id.

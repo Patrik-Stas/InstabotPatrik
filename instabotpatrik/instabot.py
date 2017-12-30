@@ -21,7 +21,6 @@ import random
 # is followed by other means than by bot (by instagram account owner directly)
 
 
-
 class InstaBot:
 
     def __init__(self,
@@ -160,29 +159,22 @@ class InstaBot:
                 self.logger.info("Runned out of all processed medias for tag %d", self.current_tag)
                 instabotpatrik.tools.go_sleep(duration_sec=180, plusminus=120)
 
-            # TODO: Dont sleep on 404, the user probably just deleted the media/changed username
-            except instabotpatrik.client.InstagramResponseException as e:
-                if e.return_code == 404:
-                    self.logger.warning(e, exc_info=True)
-                    self.logger.warning(
-                        "Request [%s] %s returned code: %d. You should investigate when is this happening."
-                        "Response body: \n%d\n\nMaybe deleted media? Changed username? Will sleep approximately %d "
-                        "seconds now.",
-                        e.request_type, e.request_address, e.return_code, e.response_body, self.ban_sleep_time_sec)
-                    instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec / 5, plusminus=120)
-                else:
-                    self.logger.critical(e, exc_info=True)
-                    self.logger.critical(
-                        "Unsatisfying response from Instagram. Request [%s] %s returned code: %d. "
-                        "Response body: \n%d\n\nBotting might had been detected. "
-                        "Will sleep approximately %d seconds now.",
-                        e.request_type, e.request_address, e.return_code, e.response_body, self.ban_sleep_time_sec)
-                    instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
+            except instabotpatrik.client.BottingDetectedException as e:
+                self.logger.critical(e, exc_info=True)
+                instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
+
+            except instabotpatrik.client.UserNotFoundException as e:
+                self.logger.warning(e, exc_info=True)
+                self.user_controller.forget_user(username=e.username)
+
+            except instabotpatrik.client.MediaNotFoundException as e:
+                self.logger.warning(e, exc_info=True)
+                self.media_controller.forget_media(shortcode=e.shortcode)
 
             except Exception as e:
                 self.logger.error(e, exc_info=True)
-                self.logger.error("Something went wrong. Will sleep 60 seconds")
-                instabotpatrik.tools.go_sleep(duration_sec=60, plusminus=10)
+                self.logger.error("Investigate this! Something went wrong")
+                instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec / 5, plusminus=120)
 
         self.logger.info("Bot is stopped.")
 

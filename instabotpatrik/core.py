@@ -129,6 +129,9 @@ class UserController:
         """
         return self.repository.find_followed_users()
 
+    def forget_user(self, username):
+        self.repository.delete_user(username=username)
+
 
 class MediaController:
     def __init__(self, repository, api_client):
@@ -186,3 +189,6 @@ class MediaController:
             owner_user = instabotpatrik.model.InstagramUser(media.owner_id) if owner_user is None else owner_user
             owner_user.register_like()
             self.repository.update_user(owner_user)
+
+    def forget_media(self, shortcode):
+        self.repository.delete_media(shortcode=shortcode)
