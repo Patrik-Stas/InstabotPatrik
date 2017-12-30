@@ -130,6 +130,7 @@ class UserController:
         return self.repository.find_followed_users()
 
     def forget_user(self, username):
+        self.logger.info("Forgetting user. Username:%s", username)
         self.repository.delete_user(username=username)
 
 
@@ -191,4 +192,5 @@ class MediaController:
             self.repository.update_user(owner_user)
 
     def forget_media(self, shortcode):
+        self.logger.info("Forgetting media. Shortcode:%s", shortcode)
         self.repository.delete_media(shortcode=shortcode)
