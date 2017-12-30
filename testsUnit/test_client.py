@@ -2,7 +2,6 @@
 import logging
 import unittest
 import unittest.mock
-from unittest.mock import patch
 
 import requests
 import requests.models
@@ -129,7 +128,7 @@ class ItShouldParseUserDetails(unittest.TestCase):
         session_mock.get.assert_called_with("https://www.instagram.com/traveluser/?__a=1")
 
 
-class GetRecentMediaOfUserShouldRaiseUserNotFoundException(unittest.TestCase):
+class GetRecentMediaOfUserShouldRaiseUserNotFoundExceptionOn404(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
     def test_run(self, mock_sleep):
@@ -163,7 +162,7 @@ class GetRecentMediaOfUserShouldRaiseBottingDetectedOnCode400(unittest.TestCase)
             client.get_recent_media_of_user("someusername")
 
 
-class GetUserShouldRaiseUserNotFoundException(unittest.TestCase):
+class GetUserShouldRaiseUserNotFoundExceptionOn404(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
     def test_run(self, mock_sleep):
