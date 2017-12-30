@@ -159,7 +159,7 @@ class InstaBot:
 
             # TODO: Dont sleep on 404, the user probably just deleted the media/changed username
             except instabotpatrik.client.InstagramResponseException as e:
-                if e.return_code is 404:
+                if e.return_code == 404:
                     self.logger.warning(e, exc_info=True)
                     self.logger.warning(
                         "Request [%s] %s returned code: %d. You should investigate when is this happening."
