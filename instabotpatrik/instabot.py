@@ -4,6 +4,8 @@ import datetime
 import logging
 import instabotpatrik
 import random
+import logging
+import logging.handlers
 
 
 # TODO : Limit cap middle layer
@@ -36,7 +38,9 @@ class InstaBot:
         :param login_controller:
         :type login_controller: instabotpatrik.core.AccountController
         """
-
+        # loghandler = logging.handlers.TimedRotatingFileHandler(filename="logfile.log", when="midnight", utc=True)
+        # formatter = logging.Formatter(fmt='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+        #                   datefmt='%m/%d/%Y-%H:%M:%S')
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.media_controller = media_controller

@@ -79,7 +79,8 @@ class InstagramClient:
         :type requests_session: requests.Session
         :param proxy:
         """
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = logging.getLogger("MY-Logger")
+        # self.logger = logging.getLogger(self.__class__.__name__)
         self.s = requests_session
         self.proxy = proxy
         if proxy != "":
@@ -145,7 +146,10 @@ class InstagramClient:
                                     % (method_type, url, r.status_code, r.status_code)
                 raise BottingDetectedException(method_type, url, r.status_code, r.text, message=exception_message)
             else:
-                raise InstagramResponseException(method_type, url, r.status_code, r.text)
+                exception_message = "Unexpected response. Request [%s] %s returned code: %d. " \
+                                    "Response body: \n%d\n\nInvestigate this." \
+                                    % (method_type, url, r.status_code, r.status_code)
+                raise InstagramResponseException(method_type, url, r.status_code, r.text, message=exception_message)
 
     def post_request(self, url):
         return self.make_request(url, "POST", self.s.post)

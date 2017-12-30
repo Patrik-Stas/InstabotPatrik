@@ -29,7 +29,8 @@ class BasicSetup:
         self.api_client = api_client if api_client is not None \
             else instabotpatrik.client.InstagramClient(user_login=self.cfg.get_instagram_username(),
                                                        user_password=self.cfg.get_instagram_password(),
-                                                       requests_session=requests.Session())
+                                                       requests_session=requests.Session(),
+                                                       try_to_load_session_from_file=True)
 
         # INSTABOT DEPENDENCIES
         self.core = instabotpatrik.core.UserController(repository=self.repo_bot,

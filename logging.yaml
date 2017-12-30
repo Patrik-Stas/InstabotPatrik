@@ -1,0 +1,27 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+    basic:
+        format: "[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s"
+        datefmt: "%m/%d/%Y-%H:%M:%S"
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: basic
+        stream: ext://sys.stdout
+
+    daily_file_handler:
+        class: logging.handlers.TimedRotatingFileHandler
+        level: INFO
+        formatter: basic
+        filename: default.log
+        when: midnight
+        utc: true
+        backupCount: 10
+        encoding: utf8
+
+root:
+    level: INFO
+    handlers: [daily_file_handler, console]
