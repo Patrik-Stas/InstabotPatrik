@@ -79,8 +79,7 @@ class InstagramClient:
         :type requests_session: requests.Session
         :param proxy:
         """
-        self.logger = logging.getLogger("MY-Logger")
-        # self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.s = requests_session
         self.proxy = proxy
         if proxy != "":
