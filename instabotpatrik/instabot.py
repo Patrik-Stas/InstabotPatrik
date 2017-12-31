@@ -131,8 +131,14 @@ class InstaBot:
                                  % self.action_manager.seconds_left_until_action_possible("unfollow"))
                 instabotpatrik.tools.go_sleep(duration_sec=info['sec_left'] + 20, plusminus=20)
 
-            except instabotpatrik.client.InstagramResponseException as e:
-                raise e
+            except instabotpatrik.client.UserNotFoundException as e:
+                self.logger.warning(e, exc_info=True)
+                self.user_controller.forget_user(username=e.username)
+
+            except instabotpatrik.client.MediaNotFoundException as e:
+                self.logger.warning(e, exc_info=True)
+                self.media_controller.forget_media(shortcode=e.shortcode)
+
             except Exception as e:
                 self.logger.error(e, exc_info=True)
                 self.logger.error("Something went wrong. Will sleep 60 seconds")
@@ -167,13 +173,10 @@ class InstaBot:
                 self.logger.critical(e, exc_info=True)
                 instabotpatrik.tools.go_sleep(duration_sec=self.ban_sleep_time_sec, plusminus=120)
 
-            except instabotpatrik.client.UserNotFoundException as e:
-                self.logger.warning(e, exc_info=True)
-                self.user_controller.forget_user(username=e.username)
-
-            except instabotpatrik.client.MediaNotFoundException as e:
-                self.logger.warning(e, exc_info=True)
-                self.media_controller.forget_media(shortcode=e.shortcode)
+            except instabotpatrik.client.InstagramResponseException as e:
+                self.logger.error(e, exc_info=True)
+                self.logger.error("Unexpected instram response related problem occured.")
+                instabotpatrik.tools.go_sleep(duration_sec=120, plusminus=1)
 
             except Exception as e:
                 self.logger.error(e, exc_info=True)
