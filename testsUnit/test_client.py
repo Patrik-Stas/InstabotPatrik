@@ -312,7 +312,8 @@ class FollowShouldRaiseInstagramResponseException(unittest.TestCase):
 
 
 class ItShouldRaiseUserNotFoundExceptionIfUserPageWasUnavailable(unittest.TestCase):
-    def test_run(self):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_page_not_available.response)
         session_mock.get.return_value = resp_mock
@@ -324,7 +325,8 @@ class ItShouldRaiseUserNotFoundExceptionIfUserPageWasUnavailable(unittest.TestCa
 
 
 class ItShouldRaiseMediaNotFoundExceptionIfMediaPageWasUnavailable(unittest.TestCase):
-    def test_run(self):
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
         session_mock = unittest.mock.create_autospec(requests.Session)
         resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_page_not_available.response)
         session_mock.get.return_value = resp_mock
