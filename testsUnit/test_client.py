@@ -10,6 +10,7 @@ import testsUnit.data_action_responses
 import testsUnit.data_get_media_by_tag
 import testsUnit.data_get_media_detail
 import testsUnit.data_get_user_detail
+import testsUnit.data_page_not_available
 from testsUnit.context import instabotpatrik
 
 logging.getLogger().setLevel(30)
@@ -310,5 +311,25 @@ class FollowShouldRaiseInstagramResponseException(unittest.TestCase):
             client.unfollow("user_id")
 
 
-if __name__ == '__main__':
-    unittest.main()
+class ItShouldRaiseUserNotFoundExceptionIfUserPageWasUnavailable(unittest.TestCase):
+    def test_run(self):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_page_not_available.response)
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd", user_password="xyz", requests_session=session_mock
+        )
+
+        self.assertRaises(instabotpatrik.client.UserNotFoundException, client.get_user_with_details, "someusername")
+
+
+class ItShouldRaiseMediaNotFoundExceptionIfMediaPageWasUnavailable(unittest.TestCase):
+    def test_run(self):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_page_not_available.response)
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd", user_password="xyz", requests_session=session_mock
+        )
+
+        self.assertRaises(instabotpatrik.client.MediaNotFoundException, client.get_media_detail, "someshortcode")

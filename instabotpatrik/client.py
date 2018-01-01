@@ -31,6 +31,11 @@ class BottingDetectedException(Exception):
         self.response_body = response_body
 
 
+class ResourceNotAvaiableException(Exception):
+    def __init__(self, message=None):
+        super().__init__(message)
+
+
 class UserNotFoundException(Exception):
     def __init__(self, username, message=None):
         super().__init__(message)
@@ -133,11 +138,25 @@ class InstagramClient:
         if 200 <= r.status_code < 300:
             self.logger.info("Response seems good. Response status code: %d", r.status_code)
             parsed_response = None
-            if r.text is not None:
-                parsed_response = json.loads(r.text)
+            if r.text is None:
+                exception_message = "Request [%s] %s returned code: %d. But body is empty." \
+                                    % (method_type, url, r.status_code)
+                raise InstagramResponseException(method_type, url, r.status_code, r.text, message=exception_message)
+            else:
+                try:
+                    parsed_response = json.loads(r.text)
+                except Exception as e:
+                    if "dialog-404" in r.text:
+                        exception_message = "Request [%s] %s returned code: %d, but the responsewas not JSON. " \
+                                            "Possible cause is that owner of requested resource has blocked us." \
+                                            "This is the response: %s" \
+                                            % (method_type, url, r.status_code, r.text)
+                        raise ResourceNotAvaiableException(message=exception_message) from e
+
                 self.logger.debug("Response [%s] %s:\nBody:%s\n", method_type, url,
                                   json.dumps(parsed_response, indent=4))
-            return parsed_response
+                return parsed_response
+
         else:
             if 400 <= r.status_code < 500 and r.status_code != 404:
                 exception_message = "Unsatisfying response from Instagram. Request [%s] %s returned code: %d. " \
@@ -423,11 +442,13 @@ class InstagramClient:
 
         try:
             r_object = self.get_request(self.url_media_detail % shortcode_media)
+        except ResourceNotAvaiableException as e:
+            raise MediaNotFoundException(message="Media with shortcode %s not found on instagram." % shortcode_media,
+                                         shortcode=shortcode_media) from e
         except InstagramResponseException as e:
             if e.return_code == 404:
-                raise MediaNotFoundException(
-                    message="Media with shortcode %s not found on instagram." % shortcode_media,
-                    shortcode=shortcode_media) from e
+                raise MediaNotFoundException(message="Media with shortcode %s not found on instagram" % shortcode_media,
+                                             shortcode=shortcode_media) from e
             else:
                 raise e
 
@@ -499,6 +520,9 @@ class InstagramClient:
         """
         try:
             r_object = self.get_request(self.url_user_detail % username)
+        except ResourceNotAvaiableException as e:
+            raise UserNotFoundException(message="User %s not found on instagram." % username,
+                                        username=username) from e
         except InstagramResponseException as e:
             if e.return_code == 404:
                 raise UserNotFoundException(message="User %s not found on instagram." % username,

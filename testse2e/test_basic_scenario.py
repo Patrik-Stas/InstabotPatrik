@@ -70,6 +70,10 @@ class TestBasicScenario(unittest.TestCase):
 
         self.logger.info("Let's login")
         bot_runner.account_controller.login()
+        try:
+            bot_runner.api_client.get_user_with_details(username="noemisandri")
+        except instabotpatrik.client.ResourceNotAvaiableException as e:
+            self.logger.critical(e, exc_info=True)
 
         time.sleep(3)
         self.logger.info("Let's find some media by tag")
