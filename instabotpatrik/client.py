@@ -362,9 +362,9 @@ class InstagramClient:
         media_objs = []
         for node in media_nodes:
             node_obj = instabotpatrik.model.InstagramMedia(instagram_id=node['id'],
-                                                           shortcode=node['code'],
+                                                           shortcode=node['shortcode'],
                                                            owner_id=node['owner']['id'],
-                                                           like_count=node['likes']['count'],
+                                                           like_count=node['edge_liked_by']['count'],
                                                            caption=node['caption'] if 'caption' in node else "")
             media_objs.append(node_obj)
 
@@ -377,32 +377,84 @@ class InstagramClient:
         :rtype: list of instabotpatrik.model.InstagramMedia
         """
         r_object = self.get_request(self.url_tag % tag)
-        media_dict = list(r_object['tag']['media']['nodes'])
+        edges = list(r_object['graphql']['hashtag']['edge_hashtag_to_media']['edges'])
+        media_dict = [edge['node'] for edge in edges]
         return self._parse_media_nodes(media_dict)
 
+
     # GET MEDIA BY TAG response:
-    # { tag
-    #   { media
-    #       { nodes
-    #           [ {
-    #               comments_disabled: false,
-    #               id: "1656645974179003456",
-    #               owner: { id: "30554066" },
-    #               thumbnail_src: "https://something.jpg",
-    #               thumbnail_resources: [ ... ],
-    #               is_video: false,
-    #               code: "Bb9lrx5hTxA",
-    #               date: 1511707611,
-    #               display_src: "https//:url.jpg",
-    #               caption: "Cathedrale Saint-Guy  #prague #cathedral #travel",
-    #               comments: { count: 0  },
-    #               likes: { count: 3 }
-    #             },
-    #             ...
-    #            ]
-    #       }
-    #   }
-    # }
+    # {
+    #     "graphql": {
+    #         "hashtag": {
+    #             "name": "christmas",
+    #             "is_top_media_only": false,
+    #             "edge_hashtag_to_media": {
+    #                 "count": 108952076,
+    #                 "page_info": {
+    #                     "has_next_page": true,
+    #                     "end_cursor": "J0HWk6Y3wAAAF0HWk6YnQAAAFnIA"
+    #                 },
+    #                 "edges": [
+    #                     {
+    #                         "node": {
+    #                             "comments_disabled": false,
+    #                             "id": "1685106613764807648",
+    #                             "edge_media_to_caption": {
+    #                                 "edges": [
+    #                                     {
+    #                                         "node": {
+    #                                             "text": "#christmas #grandchild #jul #julafton #barnbarn #älskadebarnbarn #canon #canoneos #canon750d #sephia #sepia"
+    #                                         }
+    #                                     }
+    #                                 ]
+    #                             },
+    #                             "shortcode": "Bdis4mCHNvg",
+    #                             "edge_media_to_comment": {
+    #                                 "count": 0
+    #                             },
+    #                             "taken_at_timestamp": 1515100383,
+    #                             "dimensions": {
+    #                                 "height": 1031,
+    #                                 "width": 1080
+    #                             },
+    #                             "display_url": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/e35/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                             "edge_liked_by": {
+    #                                 "count": 0
+    #                             },
+    #                             "owner": {
+    #                                 "id": "6262167099"
+    #                             },
+    #                             "thumbnail_src": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/s640x640/sh0.08/e35/c24.0.1031.1031/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                             "thumbnail_resources": [
+    #                                 {
+    #                                     "src": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/s150x150/e35/c24.0.1031.1031/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                                     "config_width": 150,
+    #                                     "config_height": 150
+    #                                 },
+    #                                 {
+    #                                     "src": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/s240x240/e35/c24.0.1031.1031/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                                     "config_width": 240,
+    #                                     "config_height": 240
+    #                                 },
+    #                                 {
+    #                                     "src": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/s320x320/e35/c24.0.1031.1031/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                                     "config_width": 320,
+    #                                     "config_height": 320
+    #                                 },
+    #                                 {
+    #                                     "src": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/s480x480/e35/c24.0.1031.1031/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                                     "config_width": 480,
+    #                                     "config_height": 480
+    #                                 },
+    #                                 {
+    #                                     "src": "https://instagram.fprg2-1.fna.fbcdn.net/t51.2885-15/s640x640/sh0.08/e35/c24.0.1031.1031/25037830_707378176132054_5671150598041370624_n.jpg",
+    #                                     "config_width": 640,
+    #                                     "config_height": 640
+    #                                 }
+    #                             ],
+    #                             "is_video": false
+    #                         }
+    #                     },
 
     def get_recent_media_of_user(self, username):
         """

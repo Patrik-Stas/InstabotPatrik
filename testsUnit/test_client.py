@@ -34,10 +34,10 @@ class ItShouldParseGetMediaByTag(unittest.TestCase):
         medias = client.get_recent_media_by_tag("prague")
 
         first = medias[0]
-        self.assertEqual(len(medias), 17, "No media received")
-        self.assertEqual(first.instagram_id, "1661696503407488208")
-        self.assertEqual(first.owner_id, "5550257784")
-        self.assertEqual(first.shortcode, "BcPiCpyHKzQ")
+        self.assertEqual(len(medias), 52, "No media received")
+        self.assertEqual(first.instagram_id, "1685106613764807648")
+        self.assertEqual(first.owner_id, "6262167099")
+        self.assertEqual(first.shortcode, "Bdis4mCHNvg")
         session_mock.get.assert_called_with("https://www.instagram.com/explore/tags/prague/?__a=1")
 
 

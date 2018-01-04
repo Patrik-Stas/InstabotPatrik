@@ -10,7 +10,11 @@ import freezegun
 import pytz
 import datetime
 
-logging.getLogger().setLevel(20)
+
+logging.getLogger().setLevel(10)
+logging.basicConfig(format='[%(levelname)s] [%(asctime)s] [%(name)s:%(funcName)s] : %(message)s',
+                    datefmt='%m/%d/%Y-%H:%M:%S')
+
 
 
 class ItShouldLoginAndGetMedia(unittest.TestCase):
@@ -63,8 +67,7 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
 
         time.sleep(5)
 
-        like_self_success = self.client.like(media_id=my_last_media.instagram_id)
-        self.assertTrue(like_self_success)
+        self.client.like(media_id=my_last_media.instagram_id)
 
         time.sleep(5)
 
@@ -87,16 +90,14 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
 
         self.logger.info("Liking first media with shortcode %s", first.shortcode)
         self.logger.info("Liking first media by owner id: %s", first.instagram_id)
-        like_success1 = self.client.like(first.instagram_id)
+        self.client.like(first.instagram_id)
 
-        self.assertTrue(like_success1)
         time.sleep(10)
 
         second = medias[1]
         self.logger.info("Liking second media with shortcode %s", second.shortcode)
         self.logger.info("Liking second media by owner username: %s", second.instagram_id)
-        like_success2 = self.client.like(second.instagram_id)
-        self.assertTrue(like_success2)
+        self.client.like(second.instagram_id)
 
 
 if __name__ == '__main__':
