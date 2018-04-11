@@ -72,7 +72,7 @@ class ItShouldLoginAndGetMedia(unittest.TestCase):
         time.sleep(5)
 
         my_media_after_like = self.client.get_media_detail(my_last_media.shortcode)
-        self.assertTrue(my_media_before_like.is_liked)
+        self.assertTrue(my_media_after_like.is_liked)
         self.assertEqual(my_last_media.shortcode, my_media_after_like.shortcode)
         self.assertEqual(my_last_media.owner_username, my_media_after_like.owner_username)
         self.assertEqual(my_last_media.owner_id, my_media_after_like.owner_id)

@@ -470,18 +470,19 @@ class InstagramClient:
                                             username=username) from e
             else:
                 raise e
-        user_info = r_object['user']
+        # user_info = r_object['graphql']['user']
 
-        dict_medias = list(r_object['user']['media']['nodes'])
+        media_edges = list(r_object['graphql']['user']['edge_owner_to_timeline_media']['edges'])
         medias = []
-        for dict_media in dict_medias:
-            caption = dict_media['caption'] if 'caption' in dict_media else None
-            recent_media = instabotpatrik.model.InstagramMedia(instagram_id=dict_media['id'],
-                                                               shortcode=dict_media['code'],
-                                                               owner_id=dict_media['owner']['id'],
+        for media_edge in media_edges:
+            media_node = media_edge['node']
+            caption = media_node['edge_media_to_caption']['edges'][0]['node']['text'] if 'edge_media_to_caption' in media_node else None
+            recent_media = instabotpatrik.model.InstagramMedia(instagram_id=media_node['id'],
+                                                               shortcode=media_node['shortcode'],
+                                                               owner_id=media_node['owner']['id'],
                                                                owner_username=username,
                                                                caption=caption,
-                                                               like_count=dict_media['likes']['count'])
+                                                               like_count=media_node['edge_liked_by']['count'])
             medias.append(recent_media)
         return medias
 
@@ -581,11 +582,11 @@ class InstagramClient:
                                             username=username) from e
             else:
                 raise e
-        user_info = r_object['user']
+        user_info = r_object['graphql']['user']
         detail = instabotpatrik.model.InstagramUserDetail(url=user_info['external_url'],
-                                                          count_shared_media=user_info['media']['count'],
-                                                          count_follows=user_info['follows']['count'],
-                                                          count_followed_by=user_info['followed_by']['count'],
+                                                          count_shared_media=user_info['edge_owner_to_timeline_media']['count'],
+                                                          count_follows=user_info['edge_follow']['count'],
+                                                          count_followed_by=user_info['edge_followed_by']['count'],
                                                           we_follow_user=user_info['followed_by_viewer'],
                                                           user_follows_us=user_info['follows_viewer'])
         return instabotpatrik.model.InstagramUser(instagram_id=user_info['id'],

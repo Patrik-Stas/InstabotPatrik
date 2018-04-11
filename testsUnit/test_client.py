@@ -67,6 +67,56 @@ class ItShouldParseMediaDetail(unittest.TestCase):
         session_mock.get.assert_called_with("https://www.instagram.com/p/mediaCodeABCDE/?__a=1")
 
 
+
+class ItShouldParseMediaDetail(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_get_media_detail.response)
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        media = client.get_media_detail("mediaCodeABCDE")
+
+        self.assertEqual(media.instagram_id, "1640908281679491991")
+        self.assertEqual(media.shortcode, "BbFrWNmgLOX")
+        self.assertEqual(media.owner_id, "5804069718")
+        self.assertEqual(media.caption, "프라하 안에서는 웬만해서는 #차로")
+        self.assertEqual(media.is_liked, True)
+        self.assertEqual(media.like_count, 294)
+        self.assertEqual(media.time_liked, None)
+        self.assertEqual(media.owner_username, "ownername")
+        session_mock.get.assert_called_with("https://www.instagram.com/p/mediaCodeABCDE/?__a=1")
+
+
+
+class ItShouldParseMediasOfUser(unittest.TestCase):
+
+    @unittest.mock.patch('time.sleep')
+    def test_run(self, mock_sleep):
+        session_mock = unittest.mock.create_autospec(requests.Session)
+        resp_mock = unittest.mock.Mock(status_code=200, text=testsUnit.data_get_user_detail.response)
+        session_mock.get.return_value = resp_mock
+        client = instabotpatrik.client.InstagramClient(
+            user_login="abcd",
+            user_password="xyz",
+            requests_session=session_mock
+        )
+
+        media = client.get_recent_media_of_user("mediaCodeABCDE")
+
+        self.assertEqual(media[0].caption, "foobar")
+        session_mock.get.assert_called_with("https://www.instagram.com/p/mediaCodeABCDE/?__a=1")
+
+
+
+
+
 class GetMediaDetailShouldThrowMediaNotFoundExceptionIfResponseCodeIs404(unittest.TestCase):
 
     @unittest.mock.patch('time.sleep')
@@ -118,12 +168,12 @@ class ItShouldParseUserDetails(unittest.TestCase):
 
         user = client.get_user_with_details("traveluser")
 
-        self.assertEqual(user.instagram_id, "5804069718")
-        self.assertEqual(user.username, "traveltravel")
+        self.assertEqual(user.instagram_id, "6713407637")
+        self.assertEqual(user.username, "joshjacksonnjr")
         self.assertEqual(user.url, "http://www.user-url.com/")
-        self.assertEqual(user.count_shared_media, 70)
-        self.assertEqual(user.count_follows, 3873)
-        self.assertEqual(user.count_followed_by, 2198)
+        self.assertEqual(user.count_shared_media, 7)
+        self.assertEqual(user.count_follows, 165)
+        self.assertEqual(user.count_followed_by, 88)
         self.assertEqual(user.we_follow_user, False)
         self.assertEqual(user.user_follows_us, True)
         session_mock.get.assert_called_with("https://www.instagram.com/traveluser/?__a=1")
